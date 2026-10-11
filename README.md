@@ -1,97 +1,78 @@
-# ProxiSpeak: Week 1 Backend Foundation (Signaling, Movement & Geospatial Engine)
+# ProxiSpeak — Geospatial Proximity Audio Virtual Office
 
-**Branch**: `manikanth`  
-**Milestone**: Week 1 - Real-Time Office Signaling & Movement Foundation
-
----
-
-## 🎯 Week 1 Backend Objectives & Deliverables
-
-As outlined in the Infotact Solutions project roadmap:
-- **Signaling & Movement**: Build the Node.js + Socket.io WebSocket server to broadcast real-time avatar X/Y coordinates across virtual office rooms.
-- **Geospatial Schemas**: Implement MongoDB schemas with `2dsphere` indexes to track spatial user positions (`location: { type: 'Point', coordinates: [X, Y] }`) and office layouts.
-- **Boundary & Collision Engine**: Enforce office map limits and obstacle collisions (walls, conference tables, desks) on the server.
-- **Deliverable**: Enables two browser sessions to connect via WebSockets and see each other's avatars moving in real-time.
+**Branch**: `likhitha`  
+**Author**: Leela sai likhitha yekollu  
+**Integration**: Synced from [`Likhitha730/ProxiSpeak`](https://github.com/Likhitha730/ProxiSpeak.git)
 
 ---
 
-## 🏗️ Architecture & Modules (`server/`)
+## 🚀 Implemented Features
 
+- **Real-Time Multiplayer Canvas**: Users join a shared 900x500 virtual office workspace and see each other's avatars.
+- **Live Position Synchronization**: Player movement is synchronized smoothly between browser sessions using Socket.IO (`player:move` / `player:moved`).
+- **Interactive Workspace & Layout**: Canvas-rendered office featuring:
+  - Dedicated glass **Meeting Room** with doorway access.
+  - 8 distinct developer workstations / desks with computers.
+- **AABB Collision Detection**: Prevents avatars from clipping through desks and meeting room walls while permitting doorway entry.
+- **100-Pixel Proximity Detection**: Detects and displays nearby peers within the 100px hearing radius, complete with visual green radius circles.
+- **Dynamic Proximity Audio Attenuation**: Computes volume dropoff based on distance `Math.max(0, 1 - distance / 100)`.
+- **MongoDB 2D Spatial Index**: Persists positions in MongoDB collection with `{ position: "2d" }` index and `$near` proximity querying (with automatic in-memory fallback).
+- **WebRTC Voice Chat Signaling**: Built-in microphone acquisition, voice-readiness lifecycle (`voice:ready`, `voice:stop`), and WebRTC signaling exchange (`webrtc:offer`, `webrtc:answer`, `webrtc:ice-candidate`).
+- **Backend Health Check**: `/api/health` reporting server availability, connected user counts, and database status.
+
+---
+
+## 🛠️ Technology Stack
+
+| Layer | Technologies |
+|---|---|
+| **Frontend** | React 19, Vite, HTML5 Canvas, WebRTC, Web Audio API |
+| **Backend** | Node.js, Express, Socket.IO, MongoDB |
+| **Database** | MongoDB Atlas / Local MongoDB (`user_positions` with `2d` index) |
+| **Real-Time Transport** | WebSockets (Socket.IO) & P2P WebRTC |
+
+---
+
+## ⚙️ Quick Start
+
+### 1. Start the Backend
+```bash
+cd server
+npm install
+npm run dev
+# Server running at http://localhost:5000
 ```
-server/
-├── src/
-│   ├── config/
-│   │   ├── database.js          # MongoDB Mongoose connection
-│   │   └── redis.js             # Redis Pub/Sub scaling adapter (fallback enabled)
-│   ├── models/
-│   │   ├── User.js              # User profile & 2dsphere GeoJSON location schema
-│   │   ├── Office.js            # Office dimensions, zones, and obstacles
-│   │   └── Room.js              # Conference room schemas
-│   ├── controllers/
-│   │   ├── authController.js    # JWT auth, registration, and guest access
-│   │   ├── officeController.js  # Office layouts & spatial benchmarks
-│   │   └── userController.js    # Profile & avatar customizations
-│   ├── routes/
-│   │   ├── authRoutes.js        # /api/auth endpoints
-│   │   ├── officeRoutes.js      # /api/offices endpoints
-│   │   └── userRoutes.js        # /api/users endpoints
-│   ├── services/
-│   │   ├── presenceService.js   # In-memory tracking of active sockets & X/Y positions
-│   │   ├── officeService.js     # Office layout persistence & default seeding
-│   │   └── proximityService.js  # Dual-tier proximity engine & Euclidean calculations
-│   ├── sockets/
-│   │   ├── socketServer.js      # Socket.io bootstrap with JWT authentication
-│   │   ├── movementHandler.js   # Validates boundaries, collisions, and broadcasts 'user-moved'
-│   │   ├── presenceHandler.js   # Handles 'join-office', 'user-joined', 'user-left', disconnect
-│   │   └── signalingHandler.js  # WebRTC signaling relays
-│   ├── middleware/
-│   │   ├── authenticate.js      # JWT token & socket auth guards
-│   │   ├── errorHandler.js      # Centralized error handler
-│   │   └── rateLimiter.js       # Rate limiter
-│   ├── utils/
-│   │   └── distance.js          # Euclidean distance & AABB collision math
-│   ├── app.js                   # Express app configuration
-│   └── server.js                # HTTP server & WebSocket bootstrap
-└── tests/
-    ├── movement.test.js         # Week 1 movement & geospatial tests
-    └── proximity.test.js        # Proximity math & <20ms benchmark tests
+
+### 2. Start the Frontend
+In a new terminal:
+```bash
+cd client
+npm install
+npm run dev
+# Frontend running at http://localhost:5173
+```
+
+### 3. Verify Health
+Visit:
+`http://localhost:5000/api/health`
+Expected response:
+```json
+{
+  "success": true,
+  "project": "ProxiSpeak",
+  "message": "Backend is running successfully",
+  "database": "connected",
+  "connectedUsers": 0
+}
 ```
 
 ---
 
-## ⚡ Getting Started
+## 🧪 Testing Multiplayer & Voice
 
-### 1. Prerequisites
-- **Node.js** v18+ (tested on v24)
-- **MongoDB** running on `mongodb://127.0.0.1:27017`
-
-### 2. Install Dependencies
-```bash
-npm install --prefix server
-```
-
-### 3. Environment Variables (`server/.env`)
-```env
-PORT=5000
-CLIENT_URL=http://localhost:5173
-MONGODB_URI=mongodb://127.0.0.1:27017/proxispeak
-JWT_SECRET=proxispeak_super_secret_jwt_key_2026_dev
-NODE_ENV=development
-PROXIMITY_RADIUS=100
-PROXIMITY_BUFFER=15
-```
-
-### 4. Run the Server
-```bash
-npm run server
-# Server listening on http://localhost:5000
-```
-
-### 5. Run Backend Tests
-```bash
-npm test
-```
-Validates:
-- Avatar coordinate calculations and Euclidean distance.
-- Office boundary clamping and obstacle collision detection.
-- MongoDB `2dsphere` GeoJSON Point schema structure.
+1. Open **Window 1** at `http://localhost:5173`.
+2. Open **Window 2** at `http://localhost:5173` (e.g. Incognito window).
+3. Use **WASD** or arrow keys to move. Notice both players moving in real-time.
+4. Try moving into the meeting room through the door vs trying to walk through solid walls.
+5. Move avatars within 100px of each other: the green proximity bubble connects them and shows distance in pixels.
+6. Click **"Start Voice"** to activate the WebRTC proximity voice channel.
