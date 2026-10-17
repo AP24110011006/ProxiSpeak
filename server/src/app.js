@@ -3,6 +3,7 @@ import cors from 'cors';
 import authRoutes from './routes/authRoutes.js';
 import officeRoutes from './routes/officeRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import { getSystemHealth } from './services/healthService.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
@@ -18,13 +19,10 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Health Check
+// Health Check & Diagnostics
 app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'online',
-    timestamp: new Date().toISOString(),
-    service: 'ProxiSpeak Geospatial Signaling Server',
-  });
+  const health = getSystemHealth();
+  res.json(health);
 });
 
 // Mount Routes
