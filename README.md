@@ -75,4 +75,4 @@ Expected response:
 3. Use **WASD** or arrow keys to move. Notice both players moving in real-time.
 4. Try moving into the meeting room through the door vs trying to walk through solid walls.
 5. Move avatars within 100px of each other: the green proximity bubble connects them and shows distance in pixels.
-6. Click **"Start Voice"** to activate the WebRTC proximity voice channel.
+6. Click **"Start Voice"** to activate the WebRTC proximity voice channel..
