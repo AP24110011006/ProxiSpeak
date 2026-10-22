@@ -1,113 +1,79 @@
-import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
+import bcrypt from "bcryptjs";
+import { ObjectId } from "mongodb";
+import { getCollections } from "../config/database.js";
 
-const UserSchema = new mongoose.Schema(
-  {
-    username: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
-      minlength: 3,
-      maxlength: 30,
-    },
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
-      lowercase: true,
-    },
-    password: {
-      type: String,
-      required: true,
-      minlength: 6,
-    },
-    displayName: {
-      type: String,
-      trim: true,
-      default: '',
-    },
-    avatarColor: {
-      type: String,
-      default: '#3B82F6', // Tailwind blue-500
-    },
-    avatarShape: {
-      type: String,
-      enum: ['circle', 'avatar1', 'avatar2', 'avatar3', 'robot', 'pixel'],
-      default: 'circle',
-    },
-    statusMessage: {
-      type: String,
-      default: 'Available',
-      maxlength: 80,
-    },
-    lastPosition: {
-      officeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Office' },
-      x: { type: Number, default: 200 },
-      y: { type: Number, default: 200 },
-      updatedAt: { type: Date, default: Date.now },
-    },
-    // GeoJSON Point location for spatial user queries ($near / $geoWithin)
-    location: {
-      type: {
-        type: String,
-        enum: ['Point'],
-        default: 'Point',
-      },
-      coordinates: {
-        type: [Number], // [x, y]
-        default: [200, 200],
-      },
-    },
-    isOnline: {
-      type: Boolean,
-      default: false,
-    },
-    lastSeen: {
-      type: Date,
-      default: Date.now,
-    },
+const SALT_ROUNDS = 10;
+
+export const User = {
+  /**
+   * Create a new user with a hashed password
+   */
+  async create({ name, email, password, avatar }) {
+    const { users } = getCollections();
+    const cleanEmail = email.trim().toLowerCase();
+
+    const existing = await users.findOne({ email: cleanEmail });
+    if (existing) {
+      const error = new Error("An account with this email address already exists.");
+      error.statusCode = 409;
+      throw error;
+    }
+
+    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+
+    const userDoc = {
+      name: name.trim(),
+      username: cleanEmail.split("@")[0],
+      email: cleanEmail,
+      password: hashedPassword,
+      avatar:
+        avatar ||
+        `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(
+          name.trim()
+        )}`,
+      createdAt: new Date(),
+      lastActive: new Date(),
+    };
+
+    const result = await users.insertOne(userDoc);
+    userDoc._id = result.insertedId;
+    return this.sanitize(userDoc);
   },
-  {
-    timestamps: true,
-  }
-);
 
-// 2dsphere index for MongoDB $near & $geoWithin proximity queries
-UserSchema.index({ location: '2dsphere' });
-UserSchema.index({ 'lastPosition.officeId': 1 });
+  /**
+   * Find user by lowercase email
+   */
+  async findByEmail(email) {
+    const { users } = getCollections();
+    return users.findOne({ email: email.trim().toLowerCase() });
+  },
 
-// Password hashing middleware
-UserSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
-  try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    if (!this.displayName) {
-      this.displayName = this.username;
-    }
-    // Synchronize GeoJSON coordinates with lastPosition
-    if (this.lastPosition) {
-      this.location = {
-        type: 'Point',
-        coordinates: [this.lastPosition.x, this.lastPosition.y],
-      };
-    }
-    next();
-  } catch (err) {
-    next(err);
-  }
-});
+  /**
+   * Find user by MongoDB ObjectId
+   */
+  async findById(id) {
+    const { users } = getCollections();
+    const objectId = typeof id === "string" ? new ObjectId(id) : id;
+    const user = await users.findOne({ _id: objectId });
+    return user ? this.sanitize(user) : null;
+  },
 
-UserSchema.methods.comparePassword = async function (candidatePassword) {
-  return bcrypt.compare(candidatePassword, this.password);
+  /**
+   * Compare plain password against bcrypt hash
+   */
+  async verifyPassword(plainPassword, hashedPassword) {
+    return bcrypt.compare(plainPassword, hashedPassword);
+  },
+
+  /**
+   * Sanitize user document to exclude sensitive fields
+   */
+  sanitize(user) {
+    if (!user) return null;
+    const { password, ...safeUser } = user;
+    return {
+      ...safeUser,
+      id: safeUser._id.toString(),
+    };
+  },
 };
-
-UserSchema.methods.toSafeJSON = function () {
-  const obj = this.toObject();
-  delete obj.password;
-  return obj;
-};
-
-export const User = mongoose.model('User', UserSchema);

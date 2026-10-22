@@ -3,6 +3,7 @@ import { socketAuthenticate } from '../middleware/authenticate.js';
 import { registerPresenceHandlers } from './presenceHandler.js';
 import { registerMovementHandlers } from './movementHandler.js';
 import { registerSignalingHandlers } from './signalingHandler.js';
+import { registerPlayerHandlers } from './playerHandler.js';
 import { initRedis } from '../config/redis.js';
 
 export const initSocketServer = (httpServer) => {
@@ -34,6 +35,7 @@ export const initSocketServer = (httpServer) => {
     registerPresenceHandlers(io, socket);
     registerMovementHandlers(io, socket);
     registerSignalingHandlers(io, socket);
+    registerPlayerHandlers(io, socket);
 
     socket.on('error', (err) => {
       console.error(`[Socket Error] ${socket.id}:`, err);

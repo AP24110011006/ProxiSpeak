@@ -19,6 +19,10 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Uploads
+uploads/
+server/uploads/
+
 # Logs
 logs/
 *.log

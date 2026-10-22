@@ -1,115 +1,118 @@
-import { User } from '../models/User.js';
-import { generateToken } from '../middleware/authenticate.js';
+import jwt from "jsonwebtoken";
+import { User } from "../models/User.js";
 
-export const register = async (req, res, next) => {
-  try {
-    const { username, email, password, displayName, avatarColor, avatarShape } = req.body;
+const JWT_EXPIRES_IN = "7d";
 
-    if (!username || !email || !password) {
-      return res.status(400).json({ success: false, message: 'Username, email, and password are required' });
+function generateToken(user) {
+  const secret = process.env.JWT_SECRET || "default_jwt_secret_proxispeak";
+  return jwt.sign(
+    {
+      id: user.id || user._id.toString(),
+      email: user.email,
+      name: user.name,
+    },
+    secret,
+    { expiresIn: JWT_EXPIRES_IN }
+  );
+}
+
+export const authController = {
+  /**
+   * Register a new user
+   * POST /api/auth/register
+   */
+  async register(req, res, next) {
+    try {
+      const { name, email, password, avatar } = req.body;
+
+      if (!name || name.trim().length < 2) {
+        return res.status(400).json({
+          success: false,
+          error: "Full name must be at least 2 characters.",
+        });
+      }
+
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return res.status(400).json({
+          success: false,
+          error: "Please provide a valid email address.",
+        });
+      }
+
+      if (!password || password.length < 6) {
+        return res.status(400).json({
+          success: false,
+          error: "Password must be at least 6 characters long.",
+        });
+      }
+
+      const user = await User.create({ name, email, password, avatar });
+      const token = generateToken(user);
+
+      res.status(201).json({
+        success: true,
+        message: "Account created successfully.",
+        token,
+        user,
+      });
+    } catch (error) {
+      next(error);
     }
+  },
 
-    const existingUser = await User.findOne({
-      $or: [{ email: email.toLowerCase() }, { username: username.trim() }],
-    });
+  /**
+   * Log in an existing user
+   * POST /api/auth/login
+   */
+  async login(req, res, next) {
+    try {
+      const { email, password } = req.body;
 
-    if (existingUser) {
-      return res.status(409).json({ success: false, message: 'Username or email already in use' });
+      if (!email || !password) {
+        return res.status(400).json({
+          success: false,
+          error: "Email and password are required.",
+        });
+      }
+
+      const rawUser = await User.findByEmail(email);
+      if (!rawUser) {
+        return res.status(401).json({
+          success: false,
+          error: "Invalid email or password credentials.",
+        });
+      }
+
+      const isMatch = await User.verifyPassword(password, rawUser.password);
+      if (!isMatch) {
+        return res.status(401).json({
+          success: false,
+          error: "Invalid email or password credentials.",
+        });
+      }
+
+      const user = User.sanitize(rawUser);
+      const token = generateToken(user);
+
+      res.json({
+        success: true,
+        message: "Logged in successfully.",
+        token,
+        user,
+      });
+    } catch (error) {
+      next(error);
     }
+  },
 
-    const user = new User({
-      username: username.trim(),
-      email: email.toLowerCase().trim(),
-      password,
-      displayName: displayName?.trim() || username.trim(),
-      avatarColor: avatarColor || '#3B82F6',
-      avatarShape: avatarShape || 'circle',
-    });
-
-    await user.save();
-    const token = generateToken(user);
-
-    res.status(201).json({
-      success: true,
-      token,
-      user: user.toSafeJSON(),
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const login = async (req, res, next) => {
-  try {
-    const { emailOrUsername, password } = req.body;
-
-    if (!emailOrUsername || !password) {
-      return res.status(400).json({ success: false, message: 'Please provide credentials' });
-    }
-
-    const user = await User.findOne({
-      $or: [
-        { email: emailOrUsername.toLowerCase().trim() },
-        { username: emailOrUsername.trim() },
-      ],
-    });
-
-    if (!user) {
-      return res.status(401).json({ success: false, message: 'Invalid credentials' });
-    }
-
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      return res.status(401).json({ success: false, message: 'Invalid credentials' });
-    }
-
-    user.lastSeen = new Date();
-    await user.save();
-
-    const token = generateToken(user);
+  /**
+   * Get current authenticated user profile
+   * GET /api/users/me
+   */
+  async getMe(req, res) {
     res.json({
       success: true,
-      token,
-      user: user.toSafeJSON(),
+      user: req.user,
     });
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const guestLogin = async (req, res, next) => {
-  try {
-    const { displayName, avatarColor } = req.body;
-    const guestId = 'guest_' + Math.random().toString(36).substring(2, 9);
-    const guestUser = {
-      _id: guestId,
-      id: guestId,
-      username: displayName ? displayName.trim() : `Guest_${guestId.substring(6)}`,
-      displayName: displayName ? displayName.trim() : `Guest ${guestId.substring(6)}`,
-      avatarColor: avatarColor || '#10B981',
-      avatarShape: 'circle',
-      isGuest: true,
-    };
-
-    const token = generateToken(guestUser);
-    res.json({
-      success: true,
-      token,
-      user: guestUser,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const getMe = async (req, res, next) => {
-  try {
-    if (req.user.isGuest) {
-      return res.json({ success: true, user: req.user });
-    }
-    const user = await User.findById(req.user._id).select('-password');
-    res.json({ success: true, user });
-  } catch (error) {
-    next(error);
-  }
+  },
 };
