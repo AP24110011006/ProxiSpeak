@@ -1,4 +1,7 @@
-const API_BASE = "http://localhost:5000";
+const API_BASE =
+  typeof window !== "undefined" && window.location.hostname
+    ? `http://${window.location.hostname}:5000`
+    : "http://localhost:5000";
 
 function getToken() {
   return localStorage.getItem("proxispeak_token");

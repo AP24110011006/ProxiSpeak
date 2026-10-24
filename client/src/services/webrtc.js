@@ -20,11 +20,16 @@ class WebRTCManager {
     this.analyser = null;
     this.analyserInterval = null;
     this.isSpeaking = false;
+    this.listenersSetUp = false;
 
     // Callbacks
     this.onSpeakingChange = null; // (isSpeaking, level) => void
     this.onPeerListChange = null; // (activePeers) => void
     this.onError = null;
+
+    if (typeof window !== "undefined") {
+      this.setupSocketListeners();
+    }
   }
 
   /**
@@ -103,6 +108,9 @@ class WebRTCManager {
    * Listen to Socket.IO signaling events
    */
   setupSocketListeners() {
+    if (this.listenersSetUp) return;
+    this.listenersSetUp = true;
+
     const socket = getSocket();
 
     // 1. Peer entered earshot (< 150px): Initiate WebRTC P2P Connection

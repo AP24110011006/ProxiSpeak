@@ -27,6 +27,23 @@ export function OfficeCanvas({
   const bgImageRef = useRef(null);
   const radarAngleRef = useRef(0);
 
+  // Sync props to refs so the 60 FPS animation loop never tears down
+  const onUserMoveRef = useRef(onUserMove);
+  const livePeersRef = useRef(livePeers);
+  const beaconsRef = useRef(beacons);
+  const radiusRef = useRef(radius);
+  const isSpeakingRef = useRef(isSpeaking);
+  const isMutedRef = useRef(isMuted);
+  const currentZoneRef = useRef(currentZone);
+
+  useEffect(() => { onUserMoveRef.current = onUserMove; }, [onUserMove]);
+  useEffect(() => { livePeersRef.current = livePeers; }, [livePeers]);
+  useEffect(() => { beaconsRef.current = beacons; }, [beacons]);
+  useEffect(() => { radiusRef.current = radius; }, [radius]);
+  useEffect(() => { isSpeakingRef.current = isSpeaking; }, [isSpeaking]);
+  useEffect(() => { isMutedRef.current = isMuted; }, [isMuted]);
+  useEffect(() => { currentZoneRef.current = currentZone; }, [currentZone]);
+
   // Load office floor plan background image
   useEffect(() => {
     const img = new Image();
@@ -122,7 +139,9 @@ export function OfficeCanvas({
         lastEmit = timestamp;
         const newZone = getOfficeZone(posRef.current.x, posRef.current.y);
         setCurrentZone(newZone);
-        onUserMove({ x: posRef.current.x, y: posRef.current.y, zone: newZone });
+        if (onUserMoveRef.current) {
+          onUserMoveRef.current({ x: posRef.current.x, y: posRef.current.y, zone: newZone });
+        }
       }
 
       // 3. Render Canvas
@@ -131,6 +150,13 @@ export function OfficeCanvas({
         const ctx = canvas.getContext("2d");
         const w = canvas.width;
         const h = canvas.height;
+
+        const peers = livePeersRef.current || [];
+        const beaconList = beaconsRef.current || [];
+        const currentRadius = radiusRef.current || 100;
+        const speaking = isSpeakingRef.current;
+        const muted = isMutedRef.current;
+        const zoneLabel = currentZoneRef.current || "Office";
 
         // Clear Canvas
         ctx.clearRect(0, 0, w, h);
@@ -165,10 +191,10 @@ export function OfficeCanvas({
         }
 
         // Draw Acoustic Sound Propagation Rays to Nearby Peers
-        livePeers.forEach((peer) => {
+        peers.forEach((peer) => {
           if (!peer.x || !peer.y) return;
           const dist = Math.hypot(peer.x - posRef.current.x, peer.y - posRef.current.y);
-          if (dist <= radius) {
+          if (dist <= currentRadius) {
             ctx.save();
             const isOccluded = (peer.occlusion || 0) > 0.3;
             ctx.strokeStyle = isOccluded ? "rgba(245, 158, 11, 0.75)" : "rgba(99, 102, 241, 0.7)";
@@ -200,13 +226,13 @@ export function OfficeCanvas({
         radarAngleRef.current += 0.03;
 
         ctx.save();
-        const grad = ctx.createRadialGradient(px, py, 10, px, py, radius);
+        const grad = ctx.createRadialGradient(px, py, 10, px, py, currentRadius);
         grad.addColorStop(0, "rgba(99, 102, 241, 0.24)");
         grad.addColorStop(0.7, "rgba(99, 102, 241, 0.07)");
         grad.addColorStop(1, "rgba(99, 102, 241, 0)");
         ctx.fillStyle = grad;
         ctx.beginPath();
-        ctx.arc(px, py, radius, 0, Math.PI * 2);
+        ctx.arc(px, py, currentRadius, 0, Math.PI * 2);
         ctx.fill();
 
         // Dashed boundary ring
@@ -214,14 +240,14 @@ export function OfficeCanvas({
         ctx.lineWidth = 1.5;
         ctx.setLineDash([6, 6]);
         ctx.beginPath();
-        ctx.arc(px, py, radius, 0, Math.PI * 2);
+        ctx.arc(px, py, currentRadius, 0, Math.PI * 2);
         ctx.stroke();
 
         // Rotating acoustic radar sweep beam
         ctx.save();
         ctx.beginPath();
         ctx.moveTo(px, py);
-        ctx.arc(px, py, radius, radarAngleRef.current, radarAngleRef.current + 0.35);
+        ctx.arc(px, py, currentRadius, radarAngleRef.current, radarAngleRef.current + 0.35);
         ctx.closePath();
         ctx.fillStyle = "rgba(99, 102, 241, 0.16)";
         ctx.fill();
@@ -229,12 +255,12 @@ export function OfficeCanvas({
         ctx.restore();
 
         // Draw Spatial Audio Beacons Anchored on Desks
-        beacons.forEach((beacon) => {
+        beaconList.forEach((beacon) => {
           if (beacon.x === undefined || beacon.y === undefined) return;
           const bx = beacon.x;
           const by = beacon.y;
           const bDist = Math.hypot(bx - px, by - py);
-          const bRadius = beacon.radius || radius;
+          const bRadius = beacon.radius || currentRadius;
           const inRange = bDist <= bRadius;
 
           ctx.save();
@@ -305,10 +331,10 @@ export function OfficeCanvas({
         });
 
         // Draw Remote Colleagues
-        livePeers.forEach((peer) => {
+        peers.forEach((peer) => {
           if (!peer.x || !peer.y) return;
           const peerDist = Math.hypot(peer.x - px, peer.y - py);
-          const inEarshot = peerDist <= radius;
+          const inEarshot = peerDist <= currentRadius;
 
           ctx.save();
           // Active speaking wave indicator
@@ -345,7 +371,7 @@ export function OfficeCanvas({
 
         // Draw Current User Avatar
         ctx.save();
-        if (isSpeaking && !isMuted) {
+        if (speaking && !muted) {
           const wave = (timestamp % 600) / 600;
           ctx.beginPath();
           ctx.arc(px, py, 14 + wave * 16, 0, Math.PI * 2);
@@ -363,7 +389,7 @@ export function OfficeCanvas({
         // User Core Avatar
         ctx.beginPath();
         ctx.arc(px, py, 11, 0, Math.PI * 2);
-        ctx.fillStyle = isMuted ? "#ef4444" : "#4f46e5";
+        ctx.fillStyle = muted ? "#ef4444" : "#4f46e5";
         ctx.fill();
         ctx.lineWidth = 2.5;
         ctx.strokeStyle = "#ffffff";
@@ -374,14 +400,14 @@ export function OfficeCanvas({
         // Status dot
         ctx.beginPath();
         ctx.arc(px, py, 3.5, 0, Math.PI * 2);
-        ctx.fillStyle = isMuted ? "#fee2e2" : isSpeaking ? "#10b981" : "#ffffff";
+        ctx.fillStyle = muted ? "#fee2e2" : speaking ? "#10b981" : "#ffffff";
         ctx.fill();
 
         // User Tag
         ctx.fillStyle = "rgba(15, 23, 42, 0.95)";
         ctx.font = "bold 10px sans-serif";
         ctx.textAlign = "center";
-        const selfTag = `You (${currentZone.split(" ")[0]})`;
+        const selfTag = `You (${zoneLabel.split(" ")[0]})`;
         const stw = ctx.measureText(selfTag).width;
         ctx.fillRect(px - stw / 2 - 6, py + 16, stw + 12, 16);
         ctx.fillStyle = "#ffffff";
@@ -400,7 +426,7 @@ export function OfficeCanvas({
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [onUserMove, livePeers, beacons, radius, isSpeaking, isMuted, currentZone]);
+  }, []);
 
   // Click-to-Move on Canvas
   const handleCanvasClick = (e) => {
