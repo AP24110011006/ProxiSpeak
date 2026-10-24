@@ -5,7 +5,13 @@
 **Integration**: Synced from [`Likhitha730/ProxiSpeak`](https://github.com/Likhitha730/ProxiSpeak.git)
 
 ---
+# ProxiSpeak — Geospatial Proximity Audio Ecosystem
 
+ProxiSpeak is a real-time virtual office application designed to make remote collaboration more natural. Users can move avatars around a shared virtual environment, see other users' movements in real time, and identify nearby participants based on their virtual positions. The project is being developed toward proximity-based voice communication, where users will be able to communicate naturally with people around them.
+
+## Project Overview
+
+Traditional video conferencing tools often require users to join scheduled calls or manually select participants. Pro
 ## 🚀 Implemented Features
 
 - **Real-Time Multiplayer Canvas**: Users join a shared 900x500 virtual office workspace and see each other's avatars.
@@ -76,3 +82,6 @@ Expected response:
 4. Try moving into the meeting room through the door vs trying to walk through solid walls.
 5. Move avatars within 100px of each other: the green proximity bubble connects them and shows distance in pixels.
 6. Click **"Start Voice"** to activate the WebRTC proximity voice channel.
+
+
+
