@@ -13,6 +13,7 @@ import audioRoutes from "./src/routes/audioRoutes.js";
 import userRoutes from "./src/routes/userRoutes.js";
 import officeRoutes from "./src/routes/officeRoutes.js";
 import meetingRoutes from "./src/routes/meetingRoutes.js";
+import metricsRoutes from "./src/routes/metricsRoutes.js";
 import { errorHandler, notFoundHandler } from "./src/middleware/errorHandler.js";
 import { apiLimiter } from "./src/middleware/rateLimiter.js";
 
@@ -111,6 +112,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/office", officeRoutes);
 app.use("/api/offices", officeRoutes);
 app.use("/api/rooms", meetingRoutes);
+app.use("/api/metrics", metricsRoutes);
 
 // 404 & Centralized Error Handlers
 app.use(notFoundHandler);
