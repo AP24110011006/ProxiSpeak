@@ -1,4 +1,4 @@
-﻿# ProxiSpeak Backend Engine & Geospatial Signaling Server
+# ProxiSpeak Backend Engine & Geospatial Signaling Server
 
 The **ProxiSpeak Backend** powers real-time WebRTC mesh signaling, MongoDB geospatial and planar Euclidean proximity queries, desk-anchored audio broadcast streaming, and spatial cluster auditing.
 
@@ -62,6 +62,11 @@ server/
 - `GET /api/audio/stream/:id`: Stream audio file with HTTP byte-range support.
 - `DELETE /api/audio/:id`: Delete broadcast (authenticated to owner).
 
+### 4. Week 3: Private Acoustic Meeting Rooms (`/api/rooms`)
+- `GET /api/rooms`: List all corporate office rooms with privacy lock state, acoustic dampening ratings, and occupant capacity.
+- `POST /api/rooms/:roomId/lock`: Toggle soundproof privacy lock for confidential meetings in Executive Glass Boardroom or Focus Cabins.
+- `GET /api/rooms/isolation`: Calculate real-time acoustic sound barrier isolation between listener and speaker coordinates (e.g., 95% barrier for locked boardroom).
+
 ---
 
 ## ⚡ Real-Time WebRTC Mesh Signaling (`proximitySocket.js`)
@@ -82,8 +87,16 @@ The Socket.IO signaling server operates at port `5000`:
 
 ## 🧪 Automated Test Suites
 
-Run all 6 test suites with:
+Run all 7 test suites with:
 
 ```bash
 npm test --prefix server
 ```
+
+1. **Authentication Suite (`auth.test.mjs`)**: Registration, login, duplicate rejection, and JWT authorization.
+2. **Audio Management Suite (`audio.test.mjs`)**: Multer disk persistence, streaming, metadata patching, and owner permissions.
+3. **Geospatial Proximity Suite (`proximity.test.mjs`)**: MongoDB `2dsphere` spatial indexing and distance sorting.
+4. **Corporate Planar Proximity Suite (`office_proximity.test.mjs`)**: Euclidean distance calculations, zone bounding, and zero-leakage acoustic boundaries.
+5. **WebRTC Signaling Suite (`webrtc_signaling.test.mjs`)**: Earshot triggers, peer clustering, and SDP/ICE signaling relay.
+6. **Spatial Audio Broadcast Suite (`spatial_audio_broadcast_flow.test.mjs`)**: End-to-end employee desk broadcasting and listener attenuation.
+7. **Week 3 Meeting Room Isolation Suite (`meeting_isolation.test.mjs`)**: Soundproof barrier verification, room privacy lock, and coordinate-to-room mapping.

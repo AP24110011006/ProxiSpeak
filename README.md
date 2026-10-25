@@ -25,6 +25,7 @@ Traditional video conferencing tools often require users to join scheduled calls
 - **MongoDB 2D Spatial Index**: Persists positions in MongoDB collection with `{ position: "2d" }` index and `$near` proximity querying (with automatic in-memory fallback).
 - **WebRTC Voice Chat Signaling**: Built-in microphone acquisition, voice-readiness lifecycle (`voice:ready`, `voice:stop`), and WebRTC signaling exchange (`webrtc:offer`, `webrtc:answer`, `webrtc:ice-candidate`).
 - **Backend Health Check**: `/api/health` reporting server availability, connected user counts, and database status.
+- **Week 3 Acoustic Room Isolation & Privacy Locks**: Soundproof meeting rooms (`/api/rooms`) with 95% acoustic wall barrier to prevent boardroom confidential audio leakage into hallways.
 
 ---
 

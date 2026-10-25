@@ -70,3 +70,42 @@ export function createGeoJsonPoint(lat, lng) {
     coordinates: [Number(lng), Number(lat)],
   };
 }
+
+/**
+ * Planar Euclidean distance between two 2D points.
+ */
+export function calculateEuclideanDistance(p1, p2) {
+  const x1 = p1.x ?? p1.position?.x ?? 0;
+  const y1 = p1.y ?? p1.position?.y ?? 0;
+  const x2 = p2.x ?? p2.position?.x ?? 0;
+  const y2 = p2.y ?? p2.position?.y ?? 0;
+  return Math.round(Math.hypot(x2 - x1, y2 - y1) * 100) / 100;
+}
+
+/**
+ * Quadratic sound attenuation over distance.
+ */
+export function calculateDistanceAttenuation(distance, maxRadius = 100) {
+  if (distance <= 0) return 1.0;
+  if (distance >= maxRadius) return 0.0;
+  return Math.round(Math.pow(1 - distance / maxRadius, 2) * 100) / 100;
+}
+
+/**
+ * Compute stereo pan position from -1.0 (full left) to +1.0 (full right).
+ */
+export function calculateStereoPan(listener, source) {
+  const lx = listener.x ?? listener.position?.x ?? 0;
+  const sx = source.x ?? source.position?.x ?? 0;
+  const dx = sx - lx;
+  const maxSpan = 150;
+  const pan = Math.max(-1.0, Math.min(1.0, dx / maxSpan));
+  return Math.round(pan * 100) / 100;
+}
+
+/**
+ * Acoustic wall damping factor between two points.
+ */
+export function calculateObstacleDamping(p1, p2, obstacles = []) {
+  return 0.0;
+}

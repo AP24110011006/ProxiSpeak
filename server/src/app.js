@@ -3,6 +3,7 @@ import cors from 'cors';
 import authRoutes from './routes/authRoutes.js';
 import officeRoutes from './routes/officeRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import meetingRoutes from './routes/meetingRoutes.js';
 import { getSystemHealth } from './services/healthService.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
@@ -29,6 +30,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/offices', officeRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/rooms', meetingRoutes);
 
 // Central Error Handler
 app.use(errorHandler);
