@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { X, Lock, Unlock, Shield, Mic, Sliders, Volume2, Users } from "lucide-react";
 
 export function RoomControlsModal({ isOpen, onClose, currentZone = "Modern Reception Lobby" }) {
@@ -193,6 +193,14 @@ export function RoomControlsModal({ isOpen, onClose, currentZone = "Modern Recep
               />
               Confidential Whisper Mode
             </label>
+          </div>
+
+          {/* Spatial Acoustic Profile Selector */}
+          <div style={{ marginTop: "12px", background: "rgba(15, 23, 42, 0.6)", border: "1px solid rgba(148, 163, 184, 0.12)", borderRadius: "8px", padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: "12px", color: "#94a3b8" }}>Spatial Acoustic Profile:</span>
+            <span style={{ fontSize: "12px", color: "#38bdf8", fontWeight: "600", background: "rgba(56, 189, 248, 0.15)", padding: "3px 10px", borderRadius: "12px" }}>
+              Studio Glass 450Hz (Acoustic Damped)
+            </span>
           </div>
         </div>
 
