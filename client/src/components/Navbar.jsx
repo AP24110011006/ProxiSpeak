@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../context/useAuth.js";
-import { User as UserIcon, LogOut, Radio, Users } from "lucide-react";
+import { User as UserIcon, LogOut, Radio, Users, Shield } from "lucide-react";
 
 export function Navbar({
   onOpenAuth,
@@ -8,6 +8,7 @@ export function Navbar({
   isLiveTracking,
   onToggleLiveTracking,
   onOpenBroadcast,
+  onOpenRoomControls,
 }) {
   const { user, isAuthenticated, logout } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -51,6 +52,17 @@ export function Navbar({
 
         {/* Action Controls */}
         <div className="navbar-actions">
+          {/* Week 3 Acoustic Rooms Button */}
+          <button
+            className="btn btn-secondary room-nav-btn"
+            onClick={onOpenRoomControls}
+            style={{ display: "flex", alignItems: "center", gap: "6px" }}
+            title="Acoustic meeting rooms, soundproofing, and privacy settings"
+          >
+            <Shield size={16} />
+            <span>Rooms & Privacy</span>
+          </button>
+
           {/* Prominent Broadcast Spatial Audio Button */}
           <button
             className="btn btn-primary broadcast-nav-btn"
