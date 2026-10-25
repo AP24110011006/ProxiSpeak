@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { Volume2, Mic, MicOff, Headphones, Compass, ShieldCheck } from "lucide-react";
+import { Volume2, Mic, MicOff, Headphones, Compass, ShieldCheck, Lock } from "lucide-react";
 import { OFFICE_ZONES, getOfficeZone } from "../utils/officeZones.js";
+import { isSoundproofZone } from "../utils/acousticZones.js";
 
 export function OfficeCanvas({
   userPos,
@@ -168,6 +169,22 @@ export function OfficeCanvas({
           ctx.fillStyle = "#1e293b";
           ctx.fillRect(0, 0, w, h);
         }
+
+        // Draw Soundproof Meeting Zone Overlay (Boardroom)
+        ctx.save();
+        ctx.strokeStyle = "rgba(56, 189, 248, 0.4)";
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([5, 5]);
+        ctx.strokeRect(390, 40, 380, 280);
+        ctx.fillStyle = "rgba(56, 189, 248, 0.03)";
+        ctx.fillRect(390, 40, 380, 280);
+        ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+        ctx.fillRect(398, 48, 145, 18);
+        ctx.fillStyle = "#38bdf8";
+        ctx.font = "bold 9px sans-serif";
+        ctx.textAlign = "left";
+        ctx.fillText("🔒 Soundproof Boardroom", 406, 60);
+        ctx.restore();
 
         // Draw Click-to-Move Target Path
         const target = targetRef.current;
@@ -458,6 +475,11 @@ export function OfficeCanvas({
           <span className={`live-pulse-dot ${isSpeaking ? "speaking" : ""}`} />
           <span className="zone-prefix">Current Location:</span>
           <strong>{currentZone}</strong>
+          {isSoundproofZone(currentZone) && (
+            <span style={{ marginLeft: "8px", background: "rgba(56, 189, 248, 0.2)", color: "#38bdf8", padding: "2px 8px", borderRadius: "12px", fontSize: "11px", fontWeight: "600", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+              <Lock size={11} /> Soundproof Zone
+            </span>
+          )}
         </div>
 
         {/* Room Quick Jump Pills */}
