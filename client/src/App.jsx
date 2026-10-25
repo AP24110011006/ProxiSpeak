@@ -5,6 +5,7 @@ import { OfficeCanvas } from "./components/OfficeCanvas.jsx";
 import { CoworkersPanel } from "./components/CoworkersPanel.jsx";
 import { AuthModal } from "./components/AuthModal.jsx";
 import { AudioBroadcastModal } from "./components/AudioBroadcastModal.jsx";
+import { RoomControlsModal } from "./components/RoomControlsModal.jsx";
 import { getSocket, emitOfficeMove } from "./services/socket.js";
 import { webrtc } from "./services/webrtc.js";
 import { spatialMixer } from "./services/spatialAudio.js";
@@ -41,6 +42,7 @@ function ProxiSpeakMain() {
 
   // Modal Dialogs
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isRoomControlsOpen, setIsRoomControlsOpen] = useState(false);
 
   // 1. Initial Office Presence Broadcast & WebRTC Setup
   useEffect(() => {
@@ -206,6 +208,7 @@ function ProxiSpeakMain() {
         isLiveTracking={isLiveTracking}
         onToggleLiveTracking={() => setIsLiveTracking(!isLiveTracking)}
         onOpenBroadcast={() => setIsBroadcastOpen(true)}
+        onOpenRoomControls={() => setIsRoomControlsOpen(true)}
       />
 
       {/* Main Workspace (60 FPS Canvas + Live Proximity Coworkers Panel) */}
@@ -265,6 +268,13 @@ function ProxiSpeakMain() {
       <AuthModal
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
+      />
+
+      {/* Week 3 Acoustic Rooms & Privacy Controls Modal */}
+      <RoomControlsModal
+        isOpen={isRoomControlsOpen}
+        onClose={() => setIsRoomControlsOpen(false)}
+        currentZone={officePos?.zone}
       />
     </div>
   );
