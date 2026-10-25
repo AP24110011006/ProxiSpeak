@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Week 3: Corporate Office Acoustic Zone Boundaries & Soundproofing
  */
 
@@ -61,3 +61,13 @@ export function computeAcousticTransmission(zoneA, zoneB) {
   // Cross-pod open floor audio
   return 0.65;
 }
+
+/**
+ * Week 3: Frequency reverberation & clarity profiles per zone
+ */
+export const ACOUSTIC_FREQUENCY_PROFILES = {
+  boardroom: { rt60Seconds: 0.35, dspPreset: "acoustic-glass", clarityScore: 98 },
+  focus_cabins: { rt60Seconds: 0.20, dspPreset: "studio-dry", clarityScore: 99 },
+  dev_pods: { rt60Seconds: 0.60, dspPreset: "open-office", clarityScore: 88 },
+  lounge: { rt60Seconds: 0.75, dspPreset: "ambient-lounge", clarityScore: 82 }
+};
