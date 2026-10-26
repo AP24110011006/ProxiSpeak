@@ -93,15 +93,63 @@ function ProxiSpeakMain() {
   useEffect(() => {
     const socket = getSocket();
 
+    // Sync current office peers immediately on mount
+    socket.emit("office:sync");
+
     socket.on("live:count", (count) => {
       setLiveUsersCount(count || 1);
     });
 
-    socket.on("proximity:peers", (peers) => {
-      setLivePeers(peers || []);
+    socket.on("office:users", (peers) => {
+      const myId = socket.id;
+      const remotePeers = (peers || []).filter((p) => p && p.id !== myId);
+      setLivePeers(remotePeers);
+    });
+
+    socket.on("user:joined", (peer) => {
+      if (!peer || !peer.id || peer.id === socket.id) return;
+      setLivePeers((prev) => {
+        const index = prev.findIndex((p) => p.id === peer.id);
+        if (index >= 0) {
+          const updated = [...prev];
+          updated[index] = { ...updated[index], ...peer };
+          return updated;
+        }
+        return [...prev, peer];
+      });
+    });
+
+    socket.on("proximity:peers", (nearbyList) => {
+      setLivePeers((prev) => {
+        const nearbyMap = new Map((nearbyList || []).map((p) => [p.id, p]));
+        const updated = prev.map((peer) => {
+          if (nearbyMap.has(peer.id)) {
+            const near = nearbyMap.get(peer.id);
+            nearbyMap.delete(peer.id);
+            return {
+              ...peer,
+              ...near,
+              inEarshot: true,
+            };
+          }
+          return {
+            ...peer,
+            inEarshot: false,
+          };
+        });
+
+        // Add any new nearby peers not yet in our peer list
+        for (const [, newPeer] of nearbyMap) {
+          if (newPeer.id !== socket.id) {
+            updated.push({ ...newPeer, inEarshot: true });
+          }
+        }
+        return updated;
+      });
     });
 
     socket.on("peer:moved", (peer) => {
+      if (!peer || !peer.id || peer.id === socket.id) return;
       setLivePeers((prev) => {
         const index = prev.findIndex((p) => p.id === peer.id);
         if (index >= 0) {
@@ -144,6 +192,8 @@ function ProxiSpeakMain() {
 
     return () => {
       socket.off("live:count");
+      socket.off("office:users");
+      socket.off("user:joined");
       socket.off("proximity:peers");
       socket.off("peer:moved");
       socket.off("peer:speaking");

@@ -76,7 +76,20 @@ export function OfficeCanvas({
     let frameCount = 0;
     let lastFpsTime = performance.now();
 
+    const isTextInput = (target) => {
+      const el = target || (typeof document !== "undefined" ? document.activeElement : null);
+      if (!el) return false;
+      const tag = (el.tagName || "").toUpperCase();
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
+      if (el.isContentEditable) return true;
+      return false;
+    };
+
     const handleKeyDown = (e) => {
+      if (isTextInput(e.target) || isTextInput(document.activeElement)) {
+        keysRef.current = {};
+        return;
+      }
       const k = e.key.toLowerCase();
       if (["arrowup", "arrowdown", "arrowleft", "arrowright", "w", "a", "s", "d"].includes(k)) {
         e.preventDefault();
@@ -86,11 +99,20 @@ export function OfficeCanvas({
     };
 
     const handleKeyUp = (e) => {
+      if (isTextInput(e.target) || isTextInput(document.activeElement)) {
+        keysRef.current = {};
+        return;
+      }
       keysRef.current[e.key.toLowerCase()] = false;
+    };
+
+    const handleBlur = () => {
+      keysRef.current = {};
     };
 
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
+    window.addEventListener("blur", handleBlur);
 
     const speed = 4.5;
     let lastEmit = 0;
@@ -349,7 +371,7 @@ export function OfficeCanvas({
 
         // Draw Remote Colleagues
         peers.forEach((peer) => {
-          if (!peer.x || !peer.y) return;
+          if (peer.x === undefined || peer.y === undefined) return;
           const peerDist = Math.hypot(peer.x - px, peer.y - py);
           const inEarshot = peerDist <= currentRadius;
 
@@ -373,11 +395,21 @@ export function OfficeCanvas({
           ctx.strokeStyle = inEarshot ? "#ffffff" : "#94a3b8";
           ctx.stroke();
 
+          // Colleague Initial inside circle
+          const peerName = peer.name || "Colleague";
+          const displayName = peerName.includes("-") ? peerName.split("-")[0] : peerName;
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "bold 9px sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText((displayName.charAt(0) || "C").toUpperCase(), peer.x, peer.y);
+
           // Colleague Name & Status Tag
           ctx.fillStyle = "rgba(15, 23, 42, 0.9)";
           ctx.font = "bold 9px sans-serif";
           ctx.textAlign = "center";
-          const tag = `${peer.name.split("-")[0]} (${Math.round(peerDist / 10)}m)`;
+          ctx.textBaseline = "alphabetic";
+          const tag = `${displayName} (${Math.round(peerDist / 10)}m)`;
           const tw = ctx.measureText(tag).width;
           ctx.fillRect(peer.x - tw / 2 - 4, peer.y + 14, tw + 8, 14);
           ctx.fillStyle = inEarshot ? "#38bdf8" : "#94a3b8";
@@ -442,6 +474,7 @@ export function OfficeCanvas({
       cancelAnimationFrame(animId);
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
+      window.removeEventListener("blur", handleBlur);
     };
   }, []);
 
