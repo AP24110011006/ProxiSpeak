@@ -20,6 +20,7 @@ export function getSocket() {
 
     socket.on("connect", () => {
       console.log(`[Socket] Connected to ${SOCKET_URL} (ID: ${socket.id})`);
+      socket.emit("office:sync");
       if (lastMovePos) {
         socket.emit("user:move", lastMovePos);
       }
@@ -51,6 +52,13 @@ export function emitOfficeMove(pos) {
   const s = getSocket();
   if (s) {
     s.emit("user:move", pos);
+  }
+}
+
+export function syncOfficePeers() {
+  const s = getSocket();
+  if (s) {
+    s.emit("office:sync");
   }
 }
 
