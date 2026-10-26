@@ -13,6 +13,24 @@ function getPairKey(id1, id2) {
   return id1 < id2 ? `${id1}:${id2}` : `${id2}:${id1}`;
 }
 
+function getActiveOfficePeers(excludeSocketId) {
+  const list = [];
+  for (const [id, u] of liveUsers.entries()) {
+    if (id !== excludeSocketId && u.x !== null && u.y !== null) {
+      list.push({
+        id: u.id,
+        name: u.name,
+        avatar: u.avatar,
+        x: u.x,
+        y: u.y,
+        zone: u.zone,
+        isSpeaking: !!u.isSpeaking,
+      });
+    }
+  }
+  return list;
+}
+
 export function setupProximitySocket(io) {
   io.on("connection", (socket) => {
     const user = {
@@ -33,6 +51,27 @@ export function setupProximitySocket(io) {
     // Send active live users count
     io.emit("live:count", liveUsers.size);
 
+    // Send existing peers in the office floor plan to the newly connected user
+    socket.emit("office:users", getActiveOfficePeers(socket.id));
+
+    // Announce the new user to all existing clients
+    socket.broadcast.emit("user:joined", {
+      id: socket.id,
+      name: user.name,
+      avatar: user.avatar,
+      x: user.x,
+      y: user.y,
+      zone: user.zone,
+      isSpeaking: false,
+    });
+
+    /**
+     * Request current office peers list
+     */
+    socket.on("office:sync", () => {
+      socket.emit("office:users", getActiveOfficePeers(socket.id));
+    });
+
     /**
      * User identifies with their logged-in profile
      */
@@ -48,7 +87,9 @@ export function setupProximitySocket(io) {
           x: user.x,
           y: user.y,
           zone: user.zone,
+          isSpeaking: !!user.isSpeaking,
         });
+        socket.emit("office:users", getActiveOfficePeers(socket.id));
       }
     });
 
@@ -161,6 +202,7 @@ export function setupProximitySocket(io) {
         x: user.x,
         y: user.y,
         zone: user.zone,
+        isSpeaking: !!user.isSpeaking,
       });
     });
 
