@@ -3314,3 +3314,277 @@
   gap: 6px;
   font-size: 11px;
 }
+
+/* --------------------------------------------------------------------------
+   7. Week 3: WebRTC Audio Health & Mesh Diagnostics Modal
+   -------------------------------------------------------------------------- */
+.audio-health-modal-card {
+  background-color: #0f172a;
+  color: #f8fafc;
+  border: 1px solid #334155;
+  border-radius: 14px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-width: 540px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: modalScaleUp 0.18s ease-out;
+}
+
+@keyframes modalScaleUp {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-icon-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-icon-badge {
+  background-color: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  padding: 10px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-heading {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+.modal-subheading {
+  font-size: 11px;
+  color: #94a3b8;
+  margin: 2px 0 0 0;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+
+.modal-close-btn:hover {
+  background-color: #1e293b;
+  color: #ffffff;
+}
+
+.sla-benchmark-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.sla-benchmark-banner.optimal {
+  background-color: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #34d399;
+}
+
+.sla-benchmark-banner.degraded {
+  background-color: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #fbbf24;
+}
+
+.sla-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sla-benchmark-tag {
+  font-family: monospace;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.metric-box {
+  background-color: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.metric-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.metric-value-row {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.metric-primary-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: #ffffff;
+  font-family: monospace;
+}
+
+.metric-unit {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.metric-codec-value {
+  font-size: 12px;
+  font-weight: 700;
+  color: #a855f7;
+  line-height: 1.4;
+  margin-top: 4px;
+}
+
+.metric-progress-bar {
+  height: 4px;
+  background-color: #334155;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.metric-progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.metric-meta-text {
+  font-size: 10px;
+  color: #64748b;
+}
+
+.mic-test-container {
+  background-color: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mic-test-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mic-test-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #cbd5e1;
+}
+
+.mic-test-toggle-btn {
+  background-color: #334155;
+  color: #f1f5f9;
+  border: none;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.mic-test-toggle-btn.active {
+  background-color: #ef4444;
+  color: #ffffff;
+}
+
+.mic-level-meter-track {
+  height: 6px;
+  background-color: #0f172a;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.mic-level-meter-fill {
+  height: 100%;
+  transition: width 0.1s linear, background-color 0.2s ease;
+}
+
+.modal-footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.refresh-metrics-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px solid #475569;
+  color: #cbd5e1;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.refresh-metrics-btn:hover {
+  background-color: #1e293b;
+  color: #ffffff;
+}
+
+.done-btn {
+  background-color: #38bdf8;
+  color: #0f172a;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.done-btn:hover {
+  background-color: #7dd3fc;
+}
