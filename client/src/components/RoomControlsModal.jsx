@@ -18,6 +18,33 @@ export function RoomControlsModal({ isOpen, onClose, currentZone = "Modern Recep
   });
 
   const [loadingId, setLoadingId] = useState(null);
+  const [recordingRooms, setRecordingRooms] = useState({});
+
+  const toggleRecording = async (roomId) => {
+    const isRec = recordingRooms[roomId];
+    try {
+      const apiBase = typeof window !== "undefined" && window.location.hostname
+        ? `http://${window.location.hostname}:5000`
+        : "http://localhost:5000";
+      const endpoint = isRec
+        ? `${apiBase}/api/rooms/${roomId}/recording/stop`
+        : `${apiBase}/api/rooms/${roomId}/recording/start`;
+      await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ initiator: "Harshitha Rao" }),
+      });
+      setRecordingRooms((prev) => ({
+        ...prev,
+        [roomId]: !isRec,
+      }));
+    } catch (e) {
+      setRecordingRooms((prev) => ({
+        ...prev,
+        [roomId]: !isRec,
+      }));
+    }
+  };
 
   useEffect(() => {
     if (!isOpen) return;
@@ -131,27 +158,51 @@ export function RoomControlsModal({ isOpen, onClose, currentZone = "Modern Recep
                   </div>
                 </div>
 
-                <button
-                  onClick={() => toggleRoomLock(room.id)}
-                  disabled={loadingId === room.id}
-                  style={{
-                    padding: "6px 12px",
-                    borderRadius: "6px",
-                    border: "none",
-                    cursor: "pointer",
-                    fontSize: "12px",
-                    fontWeight: "600",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                    background: room.isLocked ? "rgba(56, 189, 248, 0.2)" : "rgba(148, 163, 184, 0.15)",
-                    color: room.isLocked ? "#38bdf8" : "#94a3b8",
-                    transition: "all 0.15s ease"
-                  }}
-                >
-                  {room.isLocked ? <Lock size={12} /> : <Unlock size={12} />}
-                  <span>{room.isLocked ? "Locked" : "Unlocked"}</span>
-                </button>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <button
+                    onClick={() => toggleRecording(room.id)}
+                    title={recordingRooms[room.id] ? "Stop recording session" : "Start confidential audio recording"}
+                    style={{
+                      padding: "6px 10px",
+                      borderRadius: "6px",
+                      border: "none",
+                      cursor: "pointer",
+                      fontSize: "11px",
+                      fontWeight: "700",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
+                      background: recordingRooms[room.id] ? "rgba(239, 68, 68, 0.25)" : "rgba(148, 163, 184, 0.12)",
+                      color: recordingRooms[room.id] ? "#f87171" : "#94a3b8",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: recordingRooms[room.id] ? "#ef4444" : "#64748b" }} />
+                    <span>{recordingRooms[room.id] ? "REC Active" : "Record"}</span>
+                  </button>
+
+                  <button
+                    onClick={() => toggleRoomLock(room.id)}
+                    disabled={loadingId === room.id}
+                    style={{
+                      padding: "6px 12px",
+                      borderRadius: "6px",
+                      border: "none",
+                      cursor: "pointer",
+                      fontSize: "12px",
+                      fontWeight: "600",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      background: room.isLocked ? "rgba(56, 189, 248, 0.2)" : "rgba(148, 163, 184, 0.15)",
+                      color: room.isLocked ? "#38bdf8" : "#94a3b8",
+                      transition: "all 0.15s ease"
+                    }}
+                  >
+                    {room.isLocked ? <Lock size={12} /> : <Unlock size={12} />}
+                    <span>{room.isLocked ? "Locked" : "Unlocked"}</span>
+                  </button>
+                </div>
               </div>
             ))}
           </div>
