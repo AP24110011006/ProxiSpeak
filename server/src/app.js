@@ -4,6 +4,7 @@ import authRoutes from './routes/authRoutes.js';
 import officeRoutes from './routes/officeRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import meetingRoutes from './routes/meetingRoutes.js';
+import metricsRoutes from './routes/metricsRoutes.js';
 import { getSystemHealth } from './services/healthService.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
@@ -31,6 +32,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/offices', officeRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/rooms', meetingRoutes);
+app.use('/api/metrics', metricsRoutes);
 
 // Central Error Handler
 app.use(errorHandler);
