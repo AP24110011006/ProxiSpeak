@@ -1,4 +1,5 @@
 import { OfficeLayout, DEFAULT_OFFICE_LAYOUT } from "../models/OfficeLayout.js";
+import { roomRecordingService } from "../services/roomRecordingService.js";
 
 // In-memory state for real-time room privacy locks and settings
 const roomSettings = {
@@ -136,6 +137,63 @@ export async function getAcousticIsolation(req, res) {
         isSoundproofIsolated: isolation >= 0.9,
         attenuatedGain: Math.max(0, 1 - isolation)
       }
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+/**
+ * POST /api/rooms/:roomId/recording/start - Start audio recording session
+ */
+export async function startRoomRecording(req, res) {
+  try {
+    const { roomId } = req.params;
+    const { initiator } = req.body || {};
+    const result = roomRecordingService.startRecording(roomId, initiator || "Colleague");
+    return res.status(200).json({
+      success: true,
+      roomId,
+      ...result,
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+/**
+ * POST /api/rooms/:roomId/recording/stop - Stop audio recording session
+ */
+export async function stopRoomRecording(req, res) {
+  try {
+    const { roomId } = req.params;
+    const finalized = roomRecordingService.stopRecording(roomId);
+    if (!finalized) {
+      return res.status(404).json({
+        success: false,
+        message: `No active recording session found in room: ${roomId}`,
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      roomId,
+      recording: finalized,
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+/**
+ * GET /api/rooms/:roomId/recording - Get room recording status & history
+ */
+export async function getRoomRecordingStatus(req, res) {
+  try {
+    const { roomId } = req.params;
+    const status = roomRecordingService.getRoomRecordingStatus(roomId);
+    return res.status(200).json({
+      success: true,
+      ...status,
     });
   } catch (err) {
     return res.status(500).json({ success: false, error: err.message });
