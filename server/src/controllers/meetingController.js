@@ -1,5 +1,6 @@
 import { OfficeLayout, DEFAULT_OFFICE_LAYOUT } from "../models/OfficeLayout.js";
 import { roomRecordingService } from "../services/roomRecordingService.js";
+import { spatialOcclusionService } from "../services/spatialOcclusionService.js";
 
 // In-memory state for real-time room privacy locks and settings
 const roomSettings = {
@@ -194,6 +195,51 @@ export async function getRoomRecordingStatus(req, res) {
     return res.status(200).json({
       success: true,
       ...status,
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+/**
+ * GET /api/rooms/acoustics/materials - Get ISO 354 architectural acoustic materials
+ */
+export async function getAcousticMaterials(req, res) {
+  try {
+    const materials = spatialOcclusionService.getMaterials();
+    return res.status(200).json({
+      success: true,
+      count: materials.length,
+      data: materials,
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+/**
+ * POST /api/rooms/acoustics/raytrace - Simulate 2D acoustic ray-tracing between coordinates
+ */
+export async function simulateAcousticRaytrace(req, res) {
+  try {
+    const { x1, y1, x2, y2 } = req.body || {};
+    if (x1 === undefined || y1 === undefined || x2 === undefined || y2 === undefined) {
+      return res.status(400).json({
+        success: false,
+        error: "Missing coordinates: x1, y1, x2, y2 are required numbers",
+      });
+    }
+
+    const simulation = spatialOcclusionService.simulateAcousticRaytrace(
+      Number(x1),
+      Number(y1),
+      Number(x2),
+      Number(y2)
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: simulation,
     });
   } catch (err) {
     return res.status(500).json({ success: false, error: err.message });
