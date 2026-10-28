@@ -3588,3 +3588,195 @@
 .done-btn:hover {
   background-color: #7dd3fc;
 }
+
+/* --------------------------------------------------------------------------
+   8. Week 3: Acoustic Equalizer & Material Simulator Modal
+   -------------------------------------------------------------------------- */
+.acoustic-eq-modal-card {
+  background-color: #0f172a;
+  color: #f8fafc;
+  border: 1px solid #334155;
+  border-radius: 14px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-width: 580px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: modalScaleUp 0.18s ease-out;
+}
+
+.eq-presets-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.eq-preset-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #1e293b;
+  color: #94a3b8;
+  border: 1px solid #334155;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.eq-preset-chip:hover {
+  background-color: #334155;
+  color: #f8fafc;
+}
+
+.eq-preset-chip.active {
+  background-color: rgba(168, 85, 247, 0.2);
+  border-color: #a855f7;
+  color: #c084fc;
+}
+
+.equalizer-sliders-container {
+  background-color: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 16px;
+  position: relative;
+  display: flex;
+}
+
+.equalizer-scale-axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-size: 9px;
+  color: #64748b;
+  padding-right: 12px;
+  border-right: 1px solid #334155;
+  height: 120px;
+}
+
+.equalizer-sliders-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  padding-left: 12px;
+}
+
+.eq-band-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.eq-gain-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #a855f7;
+  font-family: monospace;
+}
+
+.eq-vertical-slider {
+  writing-mode: vertical-lr;
+  direction: rtl;
+  width: 24px;
+  height: 110px;
+  accent-color: #a855f7;
+  cursor: pointer;
+}
+
+.eq-freq-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+.eq-band-name {
+  font-size: 9px;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.material-simulator-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.materials-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.material-card {
+  background-color: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.material-card:hover {
+  border-color: #64748b;
+}
+
+.material-card.selected {
+  border-color: #38bdf8;
+  background-color: rgba(56, 189, 248, 0.08);
+}
+
+.material-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.material-factor-chip {
+  font-size: 10px;
+  font-weight: 700;
+  color: #38bdf8;
+  background-color: rgba(56, 189, 248, 0.15);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.material-name {
+  font-size: 12px;
+  color: #f1f5f9;
+  display: block;
+}
+
+.material-desc {
+  font-size: 10px;
+  color: #94a3b8;
+  margin: 2px 0 0 0;
+}
+
+.reset-eq-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px solid #475569;
+  color: #cbd5e1;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.reset-eq-btn:hover {
+  background-color: #1e293b;
+  color: #ffffff;
+}
