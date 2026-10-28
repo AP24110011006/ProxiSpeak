@@ -6,12 +6,20 @@ import {
   startRoomRecording,
   stopRoomRecording,
   getRoomRecordingStatus,
+  getAcousticMaterials,
+  simulateAcousticRaytrace,
 } from "../controllers/meetingController.js";
 
 const router = express.Router();
 
 // GET /api/rooms - List all rooms and their acoustic/privacy state
 router.get("/", getMeetingRooms);
+
+// GET /api/rooms/acoustics/materials - List ISO 354 architectural acoustic materials
+router.get("/acoustics/materials", getAcousticMaterials);
+
+// POST /api/rooms/acoustics/raytrace - Simulate 2D acoustic ray-tracing between coordinates
+router.post("/acoustics/raytrace", simulateAcousticRaytrace);
 
 // POST /api/rooms/:roomId/lock - Toggle room privacy & soundproof isolation
 router.post("/:roomId/lock", toggleRoomLock);
