@@ -1,6 +1,7 @@
 import { OfficeLayout, DEFAULT_OFFICE_LAYOUT } from "../models/OfficeLayout.js";
 import { roomRecordingService } from "../services/roomRecordingService.js";
 import { spatialOcclusionService } from "../services/spatialOcclusionService.js";
+import { ambientNoiseService } from "../services/ambientNoiseService.js";
 
 // In-memory state for real-time room privacy locks and settings
 const roomSettings = {
@@ -240,6 +241,41 @@ export async function simulateAcousticRaytrace(req, res) {
     return res.status(200).json({
       success: true,
       data: simulation,
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+/**
+ * GET /api/rooms/acoustics/noise-floor - Get ambient noise floors across all zones
+ */
+export async function getRoomNoiseFloors(req, res) {
+  try {
+    const floors = ambientNoiseService.getAllZoneNoiseFloors();
+    return res.status(200).json({
+      success: true,
+      count: floors.length,
+      data: floors,
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+/**
+ * POST /api/rooms/acoustics/snr - Calculate Signal-to-Noise Ratio & WebRTC Gate
+ */
+export async function computeVoiceSnr(req, res) {
+  try {
+    const { roomId, inputVoiceDb } = req.body || {};
+    const analysis = ambientNoiseService.calculateVoiceSnr(
+      roomId || "boardroom",
+      inputVoiceDb !== undefined ? Number(inputVoiceDb) : 68.0
+    );
+    return res.status(200).json({
+      success: true,
+      data: analysis,
     });
   } catch (err) {
     return res.status(500).json({ success: false, error: err.message });
