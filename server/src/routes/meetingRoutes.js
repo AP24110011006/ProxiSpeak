@@ -8,6 +8,8 @@ import {
   getRoomRecordingStatus,
   getAcousticMaterials,
   simulateAcousticRaytrace,
+  getRoomNoiseFloors,
+  computeVoiceSnr,
 } from "../controllers/meetingController.js";
 
 const router = express.Router();
@@ -20,6 +22,12 @@ router.get("/acoustics/materials", getAcousticMaterials);
 
 // POST /api/rooms/acoustics/raytrace - Simulate 2D acoustic ray-tracing between coordinates
 router.post("/acoustics/raytrace", simulateAcousticRaytrace);
+
+// GET /api/rooms/acoustics/noise-floor - Get ambient noise floors across all zones
+router.get("/acoustics/noise-floor", getRoomNoiseFloors);
+
+// POST /api/rooms/acoustics/snr - Calculate Signal-to-Noise Ratio & WebRTC Gate
+router.post("/acoustics/snr", computeVoiceSnr);
 
 // POST /api/rooms/:roomId/lock - Toggle room privacy & soundproof isolation
 router.post("/:roomId/lock", toggleRoomLock);
