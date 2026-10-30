@@ -10,6 +10,8 @@ import {
   simulateAcousticRaytrace,
   getRoomNoiseFloors,
   computeVoiceSnr,
+  computeMixMatrix,
+  getSpatialAudioBenchmark,
 } from "../controllers/meetingController.js";
 
 const router = express.Router();
@@ -28,6 +30,12 @@ router.get("/acoustics/noise-floor", getRoomNoiseFloors);
 
 // POST /api/rooms/acoustics/snr - Calculate Signal-to-Noise Ratio & WebRTC Gate
 router.post("/acoustics/snr", computeVoiceSnr);
+
+// POST /api/rooms/acoustics/mix - Compute multi-channel spatial audio mix matrix
+router.post("/acoustics/mix", computeMixMatrix);
+
+// GET /api/rooms/acoustics/benchmark - Sub-20ms spatial clustering SLA benchmark
+router.get("/acoustics/benchmark", getSpatialAudioBenchmark);
 
 // POST /api/rooms/:roomId/lock - Toggle room privacy & soundproof isolation
 router.post("/:roomId/lock", toggleRoomLock);

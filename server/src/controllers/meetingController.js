@@ -2,6 +2,7 @@ import { OfficeLayout, DEFAULT_OFFICE_LAYOUT } from "../models/OfficeLayout.js";
 import { roomRecordingService } from "../services/roomRecordingService.js";
 import { spatialOcclusionService } from "../services/spatialOcclusionService.js";
 import { ambientNoiseService } from "../services/ambientNoiseService.js";
+import { spatialAudioMixerService } from "../services/spatialAudioMixerService.js";
 
 // In-memory state for real-time room privacy locks and settings
 const roomSettings = {
@@ -277,6 +278,47 @@ export async function computeVoiceSnr(req, res) {
       success: true,
       data: analysis,
     });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+/**
+ * POST /api/rooms/acoustics/mix - Compute multi-channel spatial audio mix matrix
+ */
+export async function computeMixMatrix(req, res) {
+  try {
+    const { listener, peers, earshotRadius } = req.body || {};
+    if (!listener || listener.x === undefined || listener.y === undefined) {
+      return res.status(400).json({
+        success: false,
+        error: "listener object with x, y coordinates is required",
+      });
+    }
+
+    const matrix = spatialAudioMixerService.generateMixMatrix(
+      listener,
+      Array.isArray(peers) ? peers : [],
+      earshotRadius || 160
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: matrix,
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+/**
+ * GET /api/rooms/acoustics/benchmark - Sub-20ms spatial clustering SLA benchmark
+ */
+export async function getSpatialAudioBenchmark(req, res) {
+  try {
+    const count = parseInt(req.query.count, 10) || 60;
+    const benchmark = spatialAudioMixerService.benchmarkSpatialClustering(count);
+    return res.status(200).json(benchmark);
   } catch (err) {
     return res.status(500).json({ success: false, error: err.message });
   }
