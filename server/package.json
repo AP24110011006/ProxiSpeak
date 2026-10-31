@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "test": "node tests/auth.test.mjs && node tests/audio.test.mjs && node tests/proximity.test.mjs && node tests/office_proximity.test.mjs && node tests/webrtc_signaling.test.mjs && node tests/spatial_audio_broadcast_flow.test.mjs && node tests/meeting_isolation.test.mjs && node tests/office_peer_sync.test.mjs && node tests/week3_mesh_telemetry.test.mjs && node tests/week3_acoustic_diffraction.test.mjs && node tests/week3_ambient_snr.test.mjs && node tests/week3_spatial_mixer.test.mjs"
+    "test": "node tests/auth.test.mjs && node tests/audio.test.mjs && node tests/proximity.test.mjs && node tests/office_proximity.test.mjs && node tests/webrtc_signaling.test.mjs && node tests/spatial_audio_broadcast_flow.test.mjs && node tests/meeting_isolation.test.mjs && node tests/office_peer_sync.test.mjs && node tests/week3_mesh_telemetry.test.mjs && node tests/week3_acoustic_diffraction.test.mjs && node tests/week3_ambient_snr.test.mjs && node tests/week3_spatial_mixer.test.mjs && node tests/week3_meeting_sessions.test.mjs"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

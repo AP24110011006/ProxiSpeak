@@ -15,6 +15,7 @@ server/
 │   ├── controllers/
 │   │   ├── audioController.js   # Spatial audio upload, streaming, update, and deletion
 │   │   ├── authController.js    # JWT authentication, bcrypt password hashing, login/register
+│   │   ├── meetingController.js # Room isolation locks and session archive persistence
 │   │   └── userController.js    # User profiles, avatar customization, status updates
 │   ├── middleware/
 │   │   ├── authenticate.js      # Stateless JWT Bearer token validator
@@ -22,23 +23,33 @@ server/
 │   │   └── rateLimiter.js       # Express rate limiter against burst traffic
 │   ├── models/
 │   │   ├── Audio.js             # Dual-mode coordinates: 2dsphere GeoJSON & planar (x, y)
+│   │   ├── MeetingSession.js    # Recorded meeting sessions, audio URL, duration, participant roster
 │   │   ├── OfficeLayout.js      # Zones, collision boundaries, and acoustic wall absorption
 │   │   └── User.js              # User credentials, roles, email uniqueness, coordinates
 │   ├── routes/
 │   │   ├── audioRoutes.js       # /api/audio (upload, nearby, stream, delete)
 │   │   ├── authRoutes.js        # /api/auth (login, register, me)
+│   │   ├── meetingRoutes.js     # /api/rooms (rooms, lock, isolation, sessions)
+│   │   ├── metricsRoutes.js     # /api/metrics (mesh latency telemetry)
 │   │   ├── officeRoutes.js      # /api/office (layout, occlusion, benchmark)
 │   │   └── userRoutes.js        # /api/users (profile, directory, status)
 │   ├── sockets/
 │   │   └── proximitySocket.js   # 30Hz spatial proximity evaluation, WebRTC mesh signaling
 │   └── app.js                   # Express application setup, CORS, and routing
-├── tests/                       # 6 Comprehensive Automated Integration Test Suites
+├── tests/                       # 13 Comprehensive Automated Integration Test Suites
 │   ├── auth.test.mjs
 │   ├── audio.test.mjs
 │   ├── proximity.test.mjs
 │   ├── office_proximity.test.mjs
 │   ├── webrtc_signaling.test.mjs
-│   └── spatial_audio_broadcast_flow.test.mjs
+│   ├── spatial_audio_broadcast_flow.test.mjs
+│   ├── meeting_isolation.test.mjs
+│   ├── office_peer_sync.test.mjs
+│   ├── week3_mesh_telemetry.test.mjs
+│   ├── week3_acoustic_diffraction.test.mjs
+│   ├── week3_ambient_snr.test.mjs
+│   ├── week3_spatial_mixer.test.mjs
+│   └── week3_meeting_sessions.test.mjs
 └── server.js                    # HTTP + WebSocket bootstrapper on port 5000
 ```
 
@@ -62,10 +73,12 @@ server/
 - `GET /api/audio/stream/:id`: Stream audio file with HTTP byte-range support.
 - `DELETE /api/audio/:id`: Delete broadcast (authenticated to owner).
 
-### 4. Week 3: Private Acoustic Meeting Rooms (`/api/rooms`)
+### 4. Week 3: Private Acoustic Meeting Rooms & Sessions (`/api/rooms`)
 - `GET /api/rooms`: List all corporate office rooms with privacy lock state, acoustic dampening ratings, and occupant capacity.
 - `POST /api/rooms/:roomId/lock`: Toggle soundproof privacy lock for confidential meetings in Executive Glass Boardroom or Focus Cabins.
 - `GET /api/rooms/isolation`: Calculate real-time acoustic sound barrier isolation between listener and speaker coordinates (e.g., 95% barrier for locked boardroom).
+- `POST /api/rooms/:roomId/sessions`: Create and archive completed acoustic meeting sessions with recording URLs, duration, and participant roster.
+- `GET /api/rooms/:roomId/sessions`: Retrieve archived audio meeting sessions for playback, compliance auditing, and notes.
 
 ---
 
@@ -87,7 +100,7 @@ The Socket.IO signaling server operates at port `5000`:
 
 ## 🧪 Automated Test Suites
 
-Run all 7 test suites with:
+Run all 13 test suites with:
 
 ```bash
 npm test --prefix server
@@ -100,3 +113,9 @@ npm test --prefix server
 5. **WebRTC Signaling Suite (`webrtc_signaling.test.mjs`)**: Earshot triggers, peer clustering, and SDP/ICE signaling relay.
 6. **Spatial Audio Broadcast Suite (`spatial_audio_broadcast_flow.test.mjs`)**: End-to-end employee desk broadcasting and listener attenuation.
 7. **Week 3 Meeting Room Isolation Suite (`meeting_isolation.test.mjs`)**: Soundproof barrier verification, room privacy lock, and coordinate-to-room mapping.
+8. **Office Peer Sync Suite (`office_peer_sync.test.mjs`)**: Multi-avatar movement velocity, boundary constraints, and presence broadcast sync.
+9. **Mesh Telemetry Suite (`week3_mesh_telemetry.test.mjs`)**: WebRTC peer-to-peer latency metrics, jitter calculation, and packet loss reporting.
+10. **Acoustic Diffraction Suite (`week3_acoustic_diffraction.test.mjs`)**: Low-pass 450Hz biquad filter attenuation across drywall and glass partitions.
+11. **Ambient SNR Suite (`week3_ambient_snr.test.mjs`)**: Dynamic room noise floor and acoustic signal-to-noise ratio adjustment.
+12. **Spatial Mixer Suite (`week3_spatial_mixer.test.mjs`)**: Multi-channel WebRTC audio stream panning, gain attenuation, and mute matrix.
+13. **Meeting Sessions Suite (`week3_meeting_sessions.test.mjs`)**: Persistent meeting session archives, recording duration, and participant roster auditing.

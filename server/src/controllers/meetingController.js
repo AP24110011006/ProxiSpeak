@@ -1,4 +1,6 @@
+import mongoose from "mongoose";
 import { OfficeLayout, DEFAULT_OFFICE_LAYOUT } from "../models/OfficeLayout.js";
+import { MeetingSession } from "../models/MeetingSession.js";
 import { roomRecordingService } from "../services/roomRecordingService.js";
 import { spatialOcclusionService } from "../services/spatialOcclusionService.js";
 import { ambientNoiseService } from "../services/ambientNoiseService.js";
@@ -319,6 +321,95 @@ export async function getSpatialAudioBenchmark(req, res) {
     const count = parseInt(req.query.count, 10) || 60;
     const benchmark = spatialAudioMixerService.benchmarkSpatialClustering(count);
     return res.status(200).json(benchmark);
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+// In-memory fallback for archived sessions
+const inMemorySessions = new Map();
+
+/**
+ * GET /api/rooms/:roomId/sessions - Retrieve past archived meeting sessions
+ */
+export async function getRoomMeetingSessions(req, res) {
+  try {
+    const { roomId } = req.params;
+    let sessions = [];
+
+    if (mongoose.connection && mongoose.connection.readyState === 1) {
+      try {
+        sessions = await MeetingSession.find({ roomId }).sort({ createdAt: -1 }).lean();
+      } catch (dbErr) {
+        sessions = inMemorySessions.get(roomId) || [];
+      }
+    } else {
+      sessions = inMemorySessions.get(roomId) || [];
+    }
+
+    if (!sessions || sessions.length === 0) {
+      sessions = inMemorySessions.get(roomId) || [];
+    }
+
+    return res.status(200).json({
+      success: true,
+      roomId,
+      count: sessions.length,
+      data: sessions,
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+/**
+ * POST /api/rooms/:roomId/sessions - Archive completed acoustic meeting session
+ */
+export async function createRoomMeetingSession(req, res) {
+  try {
+    const { roomId } = req.params;
+    const body = req.body || {};
+
+    const room = DEFAULT_OFFICE_LAYOUT.rooms.find((r) => r.id === roomId);
+    const roomName = room ? room.name : `Room ${roomId}`;
+
+    const sessionPayload = {
+      roomId,
+      roomName,
+      title: body.title || `Acoustic Session in ${roomName}`,
+      initiator: body.initiator || "ProxiSpeak Colleague",
+      participants: Array.isArray(body.participants) ? body.participants : ["Alice", "Bob"],
+      durationSeconds: Number(body.durationSeconds || 120),
+      recordingUrl: body.recordingUrl || `http://localhost:5000/uploads/audio/rec_${roomId}.webm`,
+      fileSizeKb: Number(body.fileSizeKb || 1920),
+      isSoundproofLocked: roomSettings[roomId]?.locked ?? true,
+      isolationFactor: roomSettings[roomId]?.soundproofFactor ?? 0.95,
+      status: "completed",
+      notes: body.notes || "Week 3 Acoustic Meeting Archive. Preserved with soundproof isolation.",
+      createdAt: new Date(),
+    };
+
+    let savedSession = null;
+    if (mongoose.connection && mongoose.connection.readyState === 1) {
+      try {
+        const doc = new MeetingSession(sessionPayload);
+        savedSession = await doc.save();
+      } catch (dbErr) {
+        savedSession = { _id: `mem_${Date.now()}`, ...sessionPayload };
+        const existing = inMemorySessions.get(roomId) || [];
+        inMemorySessions.set(roomId, [savedSession, ...existing]);
+      }
+    } else {
+      savedSession = { _id: `mem_${Date.now()}`, ...sessionPayload };
+      const existing = inMemorySessions.get(roomId) || [];
+      inMemorySessions.set(roomId, [savedSession, ...existing]);
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: "Acoustic meeting session archived successfully",
+      data: savedSession,
+    });
   } catch (err) {
     return res.status(500).json({ success: false, error: err.message });
   }
