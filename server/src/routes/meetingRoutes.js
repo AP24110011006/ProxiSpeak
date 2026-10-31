@@ -12,6 +12,8 @@ import {
   computeVoiceSnr,
   computeMixMatrix,
   getSpatialAudioBenchmark,
+  getRoomMeetingSessions,
+  createRoomMeetingSession,
 } from "../controllers/meetingController.js";
 
 const router = express.Router();
@@ -36,6 +38,12 @@ router.post("/acoustics/mix", computeMixMatrix);
 
 // GET /api/rooms/acoustics/benchmark - Sub-20ms spatial clustering SLA benchmark
 router.get("/acoustics/benchmark", getSpatialAudioBenchmark);
+
+// GET /api/rooms/:roomId/sessions - Retrieve past archived meeting sessions
+router.get("/:roomId/sessions", getRoomMeetingSessions);
+
+// POST /api/rooms/:roomId/sessions - Archive completed acoustic meeting session
+router.post("/:roomId/sessions", createRoomMeetingSession);
 
 // POST /api/rooms/:roomId/lock - Toggle room privacy & soundproof isolation
 router.post("/:roomId/lock", toggleRoomLock);
