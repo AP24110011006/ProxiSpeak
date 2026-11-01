@@ -333,7 +333,7 @@ export function CoworkersPanel({
 
                     <button
                       className="walk-to-btn"
-                      onClick={() => onWalkToPeer && onWalkToPeer({ x: peerX, y: peerY })}
+                      onClick={() => onWalkToPeer && onWalkToPeer({ x: peerX, y: peerY, peerId: peer.id })}
                       title={`Walk to ${peer.name}`}
                     >
                       <Footprints size={12} />
