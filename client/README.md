@@ -1,16 +1,14 @@
-# React + Vite
+# ProxiSpeak Client — Frontend UI/UX & React Interface
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+**Branch**: `harshitha` (mirrored on `harshita`)  
+**Lead Engineer**: Harshitha Rao (`20harshirao18@gmail.com`)  
+**Scope**: React 19 Component Architecture, Modals, and Corporate Design System
 
-Currently, two official plugins are available:
+See root [`README.md`](file:///c:/ProxiSpeak/README.md) for the complete 3-week engineering roadmap and component directory.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## 🚀 Quick Start
+```bash
+npm install
+npm run dev
+# Vite client running at http://localhost:5173
+```
