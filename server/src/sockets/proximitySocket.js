@@ -32,12 +32,28 @@ function getActiveOfficePeers(excludeSocketId) {
 }
 
 export function setupProximitySocket(io) {
+  // Background periodic peer synchronization
+  const peerSyncInterval = setInterval(() => {
+    if (liveUsers.size > 0) {
+      for (const [id] of liveUsers.entries()) {
+        const s = io.sockets.sockets.get(id);
+        if (s) {
+          s.emit("office:users", getActiveOfficePeers(id));
+        }
+      }
+    }
+  }, 2500);
+
   io.on("connection", (socket) => {
+    const spawnCount = liveUsers.size;
+    const spawnOffsetX = ((spawnCount * 53) % 160) - 80;
+    const spawnOffsetY = ((spawnCount * 37) % 100) - 50;
+
     const user = {
       id: socket.id,
       name: `Colleague-${socket.id.slice(0, 4)}`,
-      x: 220, // default Reception Lobby position
-      y: 190,
+      x: 220 + spawnOffsetX, // Distributed spawn position around Lobby
+      y: 190 + spawnOffsetY,
       zone: "Modern Reception Lobby",
       latitude: null,
       longitude: null,
