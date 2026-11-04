@@ -5259,3 +5259,341 @@
   border-radius: 12px;
   font-weight: 500;
 }
+
+
+/* ==========================================================================
+   Week 4 — Room Moderation Modal & Host Governance Styles
+   ========================================================================== */
+.moderation-modal-overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(8px);
+  z-index: 1040;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.moderation-modal-container {
+  width: 540px;
+  max-width: 95vw;
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+}
+
+.moderation-header {
+  padding: 16px 20px;
+  background: #1e293b;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.moderation-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.moderation-icon-halo {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(99, 102, 241, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #818cf8;
+}
+
+.moderation-headline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.moderation-headline h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.room-privacy-chip {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.moderation-subhead {
+  font-size: 11px;
+  color: #94a3b8;
+  margin: 2px 0 0;
+}
+
+.moderation-close-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.moderation-close-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f8fafc;
+}
+
+.moderation-actions-strip {
+  padding: 12px 20px;
+  background: #151e2e;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  gap: 10px;
+}
+
+.host-action-btn {
+  flex: 1;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.host-action-btn.mute-all {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+}
+
+.host-action-btn.mute-all:hover {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.host-action-btn.locked {
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  color: #38bdf8;
+}
+
+.host-action-btn.unlocked {
+  background: rgba(148, 163, 184, 0.12);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  color: #94a3b8;
+}
+
+.non-host-banner {
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 12px;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.moderation-tabs {
+  display: flex;
+  background: #111827;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.moderation-tabs .tab-btn {
+  flex: 1;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.moderation-tabs .tab-btn.active {
+  color: #818cf8;
+  border-bottom-color: #6366f1;
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.moderation-body {
+  padding: 16px 20px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.attendees-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.attendee-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #1e293b;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.attendee-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.attendee-avatar-wrap {
+  position: relative;
+}
+
+.attendee-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid #334155;
+  background: #0f172a;
+}
+
+.crown-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #eab308;
+  color: #000;
+  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.attendee-name-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.attendee-name {
+  font-size: 13px;
+  color: #f1f5f9;
+}
+
+.role-tag {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 6px;
+}
+
+.role-tag.host {
+  background: rgba(234, 179, 8, 0.15);
+  color: #facc15;
+}
+
+.role-tag.guest {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+}
+
+.attendee-zone {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.attendee-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.action-icon-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.action-icon-btn.mute:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.action-icon-btn.kick:hover {
+  background: #ef4444;
+  color: #ffffff;
+  border-color: #ef4444;
+}
+
+.audit-log-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.audit-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.audit-time {
+  font-size: 10px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.audit-desc {
+  color: #cbd5e1;
+}
+
+.audit-desc strong {
+  color: #f8fafc;
+}
