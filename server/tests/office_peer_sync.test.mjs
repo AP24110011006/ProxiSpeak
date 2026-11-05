@@ -3,10 +3,11 @@ import { io } from "socket.io-client";
 
 const SERVER_URL = "http://localhost:5000";
 
-function createSocket() {
+function createSocket(autoConnect = true) {
   return io(SERVER_URL, {
     transports: ["websocket"],
     forceNew: true,
+    autoConnect,
   });
 }
 
@@ -35,12 +36,11 @@ async function run() {
 
   // 1. New user Socket B connects and should immediately receive office:users with Socket A
   console.log("1. Connecting Socket B and verifying initial office:users payload...");
-  const socketB = createSocket();
+  const socketB = createSocket(false);
 
-  const [officeUsersB] = await Promise.all([
-    waitForEvent(socketB, "office:users"),
-    new Promise((resolve) => socketB.on("connect", resolve)),
-  ]);
+  const officeUsersPromise = waitForEvent(socketB, "office:users");
+  socketB.connect();
+  const officeUsersB = await officeUsersPromise;
 
   const foundA = officeUsersB.find((p) => p.id === socketA.id);
   assert.ok(foundA, "Socket B should immediately receive Socket A in office:users");

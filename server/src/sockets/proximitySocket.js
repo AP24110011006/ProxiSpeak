@@ -1,5 +1,8 @@
 import { calculateHaversineDistance, isValidCoordinate } from "../utils/distance.js";
 import { OfficeLayout } from "../models/OfficeLayout.js";
+import { getEligibleChatRecipients, createSpatialMessage } from "../services/spatialChatService.js";
+import { roomModerationService } from "../services/roomModerationService.js";
+import { meshDiagnosticsService } from "../services/meshDiagnosticsService.js";
 
 // In-memory registry of live active colleagues in the office
 const liveUsers = new Map();
@@ -32,12 +35,28 @@ function getActiveOfficePeers(excludeSocketId) {
 }
 
 export function setupProximitySocket(io) {
+  // Background periodic peer synchronization
+  const peerSyncInterval = setInterval(() => {
+    if (liveUsers.size > 0) {
+      for (const [id] of liveUsers.entries()) {
+        const s = io.sockets.sockets.get(id);
+        if (s) {
+          s.emit("office:users", getActiveOfficePeers(id));
+        }
+      }
+    }
+  }, 2500);
+
   io.on("connection", (socket) => {
+    const spawnCount = liveUsers.size;
+    const spawnOffsetX = ((spawnCount * 53) % 160) - 80;
+    const spawnOffsetY = ((spawnCount * 37) % 100) - 50;
+
     const user = {
       id: socket.id,
       name: `Colleague-${socket.id.slice(0, 4)}`,
-      x: 220, // default Reception Lobby position
-      y: 190,
+      x: 220 + spawnOffsetX, // Distributed spawn position around Lobby
+      y: 190 + spawnOffsetY,
       zone: "Modern Reception Lobby",
       latitude: null,
       longitude: null,
@@ -308,6 +327,125 @@ export function setupProximitySocket(io) {
     /**
      * Disconnect Cleanup: Sever all WebRTC connections for departing user
      */
+
+    /**
+     * Week 4: Ephemeral Spatial Proximity Chat
+     */
+    socket.on("chat:send", async (data = {}) => {
+      try {
+        const { content, radius = DEFAULT_EARSHOT_RADIUS, isBroadcast = false } = data;
+        if (!content || typeof content !== "string" || !content.trim()) return;
+
+        const isRoomLocked = roomModerationService.getStatus(user.zone)?.isLocked || false;
+        const eligiblePeers = getEligibleChatRecipients({
+          sender: user,
+          peers: Array.from(liveUsers.values()),
+          radius,
+          isRoomLocked,
+        });
+
+        const savedMsg = await createSpatialMessage({
+          senderId: socket.id,
+          senderName: user.name,
+          senderAvatar: user.avatar,
+          x: user.x,
+          y: user.y,
+          zone: user.zone,
+          radius,
+          content: content.trim(),
+          isRoomLocked,
+          isBroadcast,
+        });
+
+        socket.emit("chat:message", {
+          ...savedMsg,
+          distance: 0,
+          isSelf: true,
+        });
+
+        for (const peer of eligiblePeers) {
+          io.to(peer.id).emit("chat:message", {
+            ...savedMsg,
+            distance: peer.distance,
+            isSelf: false,
+          });
+        }
+      } catch (err) {
+        console.error("[SpatialChat] Error relaying message:", err);
+      }
+    });
+
+    /**
+     * Week 4: Room Moderation & Host Governance
+     */
+    socket.on("room:claim-host", ({ roomId } = {}) => {
+      const roomTarget = roomId || user.zone;
+      const res = roomModerationService.claimHost(roomTarget, socket.id, user.name);
+      socket.emit("room:host-updated", res);
+    });
+
+    socket.on("room:mute-all", ({ roomId } = {}) => {
+      try {
+        const roomTarget = roomId || user.zone;
+        const roomPeers = Array.from(liveUsers.values()).filter(u => u.zone === roomTarget);
+        const res = roomModerationService.muteAllParticipants(roomTarget, socket.id, roomPeers);
+        for (const peerId of res.mutedPeerIds) {
+          io.to(peerId).emit("room:force-mute", { hostId: socket.id, hostName: user.name, roomId: roomTarget });
+        }
+        socket.emit("room:moderation-status", res);
+      } catch (err) {
+        socket.emit("room:error", { message: err.message });
+      }
+    });
+
+    socket.on("room:kick", ({ roomId, targetPeerId } = {}) => {
+      try {
+        const roomTarget = roomId || user.zone;
+        const res = roomModerationService.kickParticipant(roomTarget, socket.id, targetPeerId);
+        io.to(targetPeerId).emit("room:kicked", {
+          message: 'You were ejected from ' + roomTarget + ' by ' + user.name + '.',
+          relocateTo: res.relocateTo,
+        });
+        const kickedUser = liveUsers.get(targetPeerId);
+        if (kickedUser) {
+          kickedUser.x = res.relocateTo.x;
+          kickedUser.y = res.relocateTo.y;
+          kickedUser.zone = res.relocateTo.zone;
+          io.emit("peer:moved", kickedUser);
+        }
+        socket.emit("room:moderation-status", res);
+      } catch (err) {
+        socket.emit("room:error", { message: err.message });
+      }
+    });
+
+    socket.on("room:toggle-lock", ({ roomId } = {}) => {
+      try {
+        const roomTarget = roomId || user.zone;
+        const res = roomModerationService.toggleRoomLock(roomTarget, socket.id);
+        io.emit("room:lock-status", res);
+      } catch (err) {
+        socket.emit("room:error", { message: err.message });
+      }
+    });
+
+    /**
+     * Week 4: Mesh Diagnostics Telemetry
+     */
+    socket.on("mesh:telemetry", (data = {}) => {
+      if (!data.toId) return;
+      const telemetryRecord = meshDiagnosticsService.recordPeerTelemetry({
+        fromId: socket.id,
+        toId: data.toId,
+        rttMs: data.rttMs,
+        jitterMs: data.jitterMs,
+        packetLoss: data.packetLoss,
+        bitrateKbps: data.bitrateKbps,
+        zone: user.zone,
+      });
+      socket.emit("mesh:telemetry-ack", telemetryRecord);
+    });
+
     socket.on("disconnect", () => {
       liveUsers.delete(socket.id);
 
