@@ -93,8 +93,13 @@ function ProxiSpeakMain() {
   useEffect(() => {
     const socket = getSocket();
 
-    // Sync current office peers immediately on mount
-    socket.emit("office:sync");
+    const syncPeers = () => {
+      socket.emit("office:sync");
+    };
+
+    socket.on("connect", syncPeers);
+    syncPeers();
+    const syncInterval = setInterval(syncPeers, 2500);
 
     socket.on("live:count", (count) => {
       setLiveUsersCount(count || 1);
@@ -191,6 +196,8 @@ function ProxiSpeakMain() {
     });
 
     return () => {
+      clearInterval(syncInterval);
+      socket.off("connect", syncPeers);
       socket.off("live:count");
       socket.off("office:users");
       socket.off("user:joined");

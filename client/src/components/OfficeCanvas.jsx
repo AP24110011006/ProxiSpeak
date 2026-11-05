@@ -77,17 +77,15 @@ export function OfficeCanvas({
     let lastFpsTime = performance.now();
 
     const isTextInput = (target) => {
-      const el = target || (typeof document !== "undefined" ? document.activeElement : null);
-      if (!el) return false;
-      const tag = (el.tagName || "").toUpperCase();
+      if (!target) return false;
+      const tag = (target.tagName || "").toUpperCase();
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
-      if (el.isContentEditable) return true;
+      if (target.isContentEditable) return true;
       return false;
     };
 
     const handleKeyDown = (e) => {
-      if (isTextInput(e.target) || isTextInput(document.activeElement)) {
-        keysRef.current = {};
+      if (isTextInput(e.target)) {
         return;
       }
       const k = e.key.toLowerCase();
@@ -99,8 +97,7 @@ export function OfficeCanvas({
     };
 
     const handleKeyUp = (e) => {
-      if (isTextInput(e.target) || isTextInput(document.activeElement)) {
-        keysRef.current = {};
+      if (isTextInput(e.target)) {
         return;
       }
       keysRef.current[e.key.toLowerCase()] = false;
@@ -139,20 +136,32 @@ export function OfficeCanvas({
 
       const clickTarget = targetRef.current;
 
+      // Dynamic peer tracking if following a coworker
+      if (clickTarget && clickTarget.peerId) {
+        const livePeer = (livePeersRef.current || []).find((p) => p.id === clickTarget.peerId);
+        if (livePeer && livePeer.x !== undefined && livePeer.y !== undefined) {
+          clickTarget.x = livePeer.x;
+          clickTarget.y = livePeer.y;
+        }
+      }
+
       if (dx !== 0 || dy !== 0) {
         moved = true;
         posRef.current.x = Math.max(50, Math.min(950, posRef.current.x + dx));
         posRef.current.y = Math.max(50, Math.min(710, posRef.current.y + dy));
       } else if (clickTarget) {
         const dist = Math.hypot(clickTarget.x - posRef.current.x, clickTarget.y - posRef.current.y);
-        if (dist > speed) {
+        const stopDistance = clickTarget.peerId ? 50 : speed;
+        if (dist > stopDistance) {
           const angle = Math.atan2(clickTarget.y - posRef.current.y, clickTarget.x - posRef.current.x);
           posRef.current.x += Math.cos(angle) * speed;
           posRef.current.y += Math.sin(angle) * speed;
           moved = true;
         } else {
-          posRef.current.x = clickTarget.x;
-          posRef.current.y = clickTarget.y;
+          if (!clickTarget.peerId) {
+            posRef.current.x = clickTarget.x;
+            posRef.current.y = clickTarget.y;
+          }
           targetRef.current = null;
           moved = true;
         }
@@ -386,34 +395,43 @@ export function OfficeCanvas({
             ctx.stroke();
           }
 
+          // Colleague outer radar ring
+          ctx.beginPath();
+          ctx.arc(peer.x, peer.y, 16, 0, Math.PI * 2);
+          ctx.fillStyle = inEarshot ? "rgba(56, 189, 248, 0.35)" : "rgba(129, 140, 248, 0.25)";
+          ctx.fill();
+
           // Colleague Core Avatar
           ctx.beginPath();
-          ctx.arc(peer.x, peer.y, 11, 0, Math.PI * 2);
-          ctx.fillStyle = inEarshot ? "#38bdf8" : "#64748b";
+          ctx.arc(peer.x, peer.y, 12, 0, Math.PI * 2);
+          ctx.fillStyle = inEarshot ? "#0284c7" : "#4f46e5";
           ctx.fill();
           ctx.lineWidth = 2;
-          ctx.strokeStyle = inEarshot ? "#ffffff" : "#94a3b8";
+          ctx.strokeStyle = inEarshot ? "#38bdf8" : "#c7d2fe";
+          ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+          ctx.shadowBlur = 6;
           ctx.stroke();
+          ctx.shadowBlur = 0;
 
           // Colleague Initial inside circle
           const peerName = peer.name || "Colleague";
           const displayName = peerName.includes("-") ? peerName.split("-")[0] : peerName;
           ctx.fillStyle = "#ffffff";
-          ctx.font = "bold 9px sans-serif";
+          ctx.font = "bold 10px sans-serif";
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
           ctx.fillText((displayName.charAt(0) || "C").toUpperCase(), peer.x, peer.y);
 
           // Colleague Name & Status Tag
-          ctx.fillStyle = "rgba(15, 23, 42, 0.9)";
-          ctx.font = "bold 9px sans-serif";
+          const tag = `${displayName} • ${Math.round(peerDist / 10)}m`;
+          ctx.font = "bold 10px sans-serif";
+          const tw = ctx.measureText(tag).width;
+          ctx.fillStyle = "rgba(15, 23, 42, 0.92)";
+          ctx.fillRect(peer.x - tw / 2 - 5, peer.y + 16, tw + 10, 16);
+          ctx.fillStyle = inEarshot ? "#38bdf8" : "#c7d2fe";
           ctx.textAlign = "center";
           ctx.textBaseline = "alphabetic";
-          const tag = `${displayName} (${Math.round(peerDist / 10)}m)`;
-          const tw = ctx.measureText(tag).width;
-          ctx.fillRect(peer.x - tw / 2 - 4, peer.y + 14, tw + 8, 14);
-          ctx.fillStyle = inEarshot ? "#38bdf8" : "#94a3b8";
-          ctx.fillText(tag, peer.x, peer.y + 24);
+          ctx.fillText(tag, peer.x, peer.y + 28);
 
           ctx.restore();
         });
@@ -478,10 +496,20 @@ export function OfficeCanvas({
     };
   }, []);
 
+  const handleCanvasMouseDown = (e) => {
+    if (document.activeElement && typeof document.activeElement.blur === "function" && document.activeElement !== canvasRef.current) {
+      document.activeElement.blur();
+    }
+    if (canvasRef.current) {
+      canvasRef.current.focus();
+    }
+  };
+
   // Click-to-Move on Canvas
   const handleCanvasClick = (e) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    canvas.focus();
     const rect = canvas.getBoundingClientRect();
 
     const scaleX = 1000 / rect.width;
@@ -546,9 +574,11 @@ export function OfficeCanvas({
       <div className="canvas-viewport-wrapper">
         <canvas
           ref={canvasRef}
+          tabIndex={0}
           width={1000}
           height={750}
           className="office-html5-canvas"
+          onMouseDown={handleCanvasMouseDown}
           onClick={handleCanvasClick}
         />
       </div>
