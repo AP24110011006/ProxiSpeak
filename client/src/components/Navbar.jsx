@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../context/useAuth.js";
-import { User as UserIcon, LogOut, Radio, Users, Shield } from "lucide-react";
+import { User as UserIcon, LogOut, Radio, Users, Shield, MessageSquare, Monitor, ShieldCheck } from "lucide-react";
 
 export function Navbar({
   onOpenAuth,
@@ -52,6 +52,39 @@ export function Navbar({
 
         {/* Action Controls */}
         <div className="navbar-actions">
+          {/* Week 4 In-Earshot Spatial Chat Drawer */}
+          <button
+            className="btn btn-secondary chat-nav-btn"
+            onClick={onOpenChatDrawer}
+            style={{ display: "flex", alignItems: "center", gap: "6px" }}
+            title="In-earshot proximity text chat"
+          >
+            <MessageSquare size={16} />
+            <span>Spatial Chat</span>
+          </button>
+
+          {/* Week 4 Screen Share Presentation Modal */}
+          <button
+            className="btn btn-secondary screen-nav-btn"
+            onClick={onOpenScreenShare}
+            style={{ display: "flex", alignItems: "center", gap: "6px" }}
+            title="Present screen in corporate meeting rooms"
+          >
+            <Monitor size={16} />
+            <span>Screen Share</span>
+          </button>
+
+          {/* Week 4 Room Moderation & Host Governance Modal */}
+          <button
+            className="btn btn-secondary mod-nav-btn"
+            onClick={onOpenRoomModeration}
+            style={{ display: "flex", alignItems: "center", gap: "6px" }}
+            title="Host moderation and room privacy governance"
+          >
+            <ShieldCheck size={16} />
+            <span>Moderation</span>
+          </button>
+
           {/* Week 3 Acoustic Rooms Button */}
           <button
             className="btn btn-secondary room-nav-btn"

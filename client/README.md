@@ -1,14 +1,28 @@
-# ProxiSpeak Client — Canvas Spatial DSP & Web Audio Interface
+# ProxiSpeak Client — Web Audio, Canvas & React UI
 
-**Branch**: `likhitha` (mirrored on `likhita`)  
-**Lead Engineer**: Likhitha (`sailikhitha.yekollu@gmail.com`)  
-**Scope**: HTML5 Canvas Rendering & Web Audio DSP Processing
+**Repository**: ProxiSpeak Virtual Office Ecosystem  
+**Frontend Architecture**: React 19 + Vite + HTML5 2D Canvas + Web Audio API
 
-See root [`README.md`](file:///c:/ProxiSpeak/README.md) for the complete 3-week engineering roadmap and architectural specifications.
+---
+
+## 👥 Engineering Roles & Modules
+
+| Module | Lead Engineer | Primary Branches | Focus Area |
+| :--- | :--- | :--- | :--- |
+| **Frontend UI/UX & React Systems** | Harshitha Rao (`harshithar978@gmail.com`) | `harshitha` / `harshita` | Modals, drawers, navigation, responsive design system |
+| **Canvas Spatial DSP & Audio Engine** | Leela Sai Likhitha Yekollu (`sailikhitha.yekollu@gmail.com`) | `likhitha` / `likhita` | 60 FPS Canvas rendering, Web Audio DSP, HRTF, ducking, reverb |
+
+---
 
 ## 🚀 Quick Start
 ```bash
 npm install
 npm run dev
 # Vite client running at http://localhost:5173
+```
+
+## 🏗️ Production Build
+```bash
+npm run build
+# Production assets compiled to dist/
 ```
