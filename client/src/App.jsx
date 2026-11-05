@@ -6,6 +6,9 @@ import { CoworkersPanel } from "./components/CoworkersPanel.jsx";
 import { AuthModal } from "./components/AuthModal.jsx";
 import { AudioBroadcastModal } from "./components/AudioBroadcastModal.jsx";
 import { RoomControlsModal } from "./components/RoomControlsModal.jsx";
+import { SpatialChatDrawer } from "./components/SpatialChatDrawer.jsx";
+import { ScreenShareModal } from "./components/ScreenShareModal.jsx";
+import { RoomModerationModal } from "./components/RoomModerationModal.jsx";
 import { getSocket, emitOfficeMove } from "./services/socket.js";
 import { webrtc } from "./services/webrtc.js";
 import { spatialMixer } from "./services/spatialAudio.js";
@@ -43,6 +46,9 @@ function ProxiSpeakMain() {
   // Modal Dialogs
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isRoomControlsOpen, setIsRoomControlsOpen] = useState(false);
+  const [isChatDrawerOpen, setIsChatDrawerOpen] = useState(false);
+  const [isScreenShareOpen, setIsScreenShareOpen] = useState(false);
+  const [isModerationOpen, setIsModerationOpen] = useState(false);
 
   // 1. Initial Office Presence Broadcast & WebRTC Setup
   useEffect(() => {
@@ -266,6 +272,9 @@ function ProxiSpeakMain() {
         onToggleLiveTracking={() => setIsLiveTracking(!isLiveTracking)}
         onOpenBroadcast={() => setIsBroadcastOpen(true)}
         onOpenRoomControls={() => setIsRoomControlsOpen(true)}
+        onOpenChatDrawer={() => setIsChatDrawerOpen(true)}
+        onOpenScreenShare={() => setIsScreenShareOpen(true)}
+        onOpenRoomModeration={() => setIsModerationOpen(true)}
       />
 
       {/* Main Workspace (60 FPS Canvas + Live Proximity Coworkers Panel) */}
@@ -332,6 +341,48 @@ function ProxiSpeakMain() {
         isOpen={isRoomControlsOpen}
         onClose={() => setIsRoomControlsOpen(false)}
         currentZone={officePos?.zone}
+      />
+
+      {/* Week 4 Spatial In-Earshot Chat Drawer */}
+      <SpatialChatDrawer
+        isOpen={isChatDrawerOpen}
+        onClose={() => setIsChatDrawerOpen(false)}
+        currentZone={officePos?.zone}
+        radius={radius}
+        livePeers={livePeers}
+        currentUser={{ name: "You", id: "self" }}
+        onSendMessage={(content) => {
+          const socket = getSocket();
+          socket.emit("chat:send", { content, radius });
+        }}
+      />
+
+      {/* Week 4 Screen Share Presentation Modal */}
+      <ScreenShareModal
+        isOpen={isScreenShareOpen}
+        onClose={() => setIsScreenShareOpen(false)}
+        roomName={officePos?.zone}
+        attendeesCount={livePeers.length + 1}
+      />
+
+      {/* Week 4 Room Moderation & Host Governance Modal */}
+      <RoomModerationModal
+        isOpen={isModerationOpen}
+        onClose={() => setIsModerationOpen(false)}
+        roomName={officePos?.zone}
+        attendees={livePeers}
+        onMuteAll={() => {
+          const socket = getSocket();
+          socket.emit("room:mute-all", { roomId: officePos?.zone });
+        }}
+        onKickPeer={(peerId) => {
+          const socket = getSocket();
+          socket.emit("room:kick", { roomId: officePos?.zone, targetPeerId: peerId });
+        }}
+        onToggleLock={() => {
+          const socket = getSocket();
+          socket.emit("room:toggle-lock", { roomId: officePos?.zone });
+        }}
       />
     </div>
   );
