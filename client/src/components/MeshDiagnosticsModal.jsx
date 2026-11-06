@@ -55,8 +55,8 @@ export function MeshDiagnosticsModal({ isOpen, onClose, livePeers = [], currentZ
   if (!isOpen) return null;
 
   return (
-    <div className="diagnostics-modal-overlay">
-      <div className="diagnostics-modal-container">
+    <div className="diagnostics-modal-overlay" onClick={onClose}>
+      <div className="diagnostics-modal-container" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="diagnostics-header">
           <div className="diagnostics-title-group">
