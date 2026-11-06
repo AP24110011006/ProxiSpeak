@@ -72,6 +72,8 @@ class MeshDiagnosticsService {
   /**
    * Retrieve aggregate mesh health metrics across all active office zones
    */
+  getAggregateMeshHealth() { return this.getMeshHealthSummary(); }
+  removePeer(id) { return this.removePeerTelemetry(id); }
   getMeshHealthSummary() {
     const totalConnections = this.peerConnections.size;
     if (totalConnections === 0) {

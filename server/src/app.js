@@ -5,6 +5,10 @@ import officeRoutes from './routes/officeRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import meetingRoutes from './routes/meetingRoutes.js';
 import metricsRoutes from './routes/metricsRoutes.js';
+import spatialChatRoutes from './routes/spatialChatRoutes.js';
+import moderationRoutes from './routes/moderationRoutes.js';
+import meshDiagnosticsRoutes from './routes/meshDiagnosticsRoutes.js';
+import screenShareRoutes from './routes/screenShareRoutes.js';
 import { getSystemHealth } from './services/healthService.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
@@ -27,12 +31,18 @@ app.get('/api/health', (req, res) => {
   res.json(health);
 });
 
-// Mount Routes
+// Core Enterprise Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/offices', officeRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/rooms', meetingRoutes);
 app.use('/api/metrics', metricsRoutes);
+
+// Week 4 Collaboration, Telemetry & Moderation Routes
+app.use('/api/chat', spatialChatRoutes);
+app.use('/api/moderation', moderationRoutes);
+app.use('/api/mesh', meshDiagnosticsRoutes);
+app.use('/api/screenshare', screenShareRoutes);
 
 // Central Error Handler
 app.use(errorHandler);
