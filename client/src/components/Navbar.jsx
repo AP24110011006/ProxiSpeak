@@ -1,6 +1,16 @@
 import { useState } from "react";
 import { useAuth } from "../context/useAuth.js";
-import { User as UserIcon, LogOut, Radio, Users, Shield, MessageSquare, Monitor, ShieldCheck, Activity } from "lucide-react";
+import {
+  User as UserIcon,
+  LogOut,
+  Radio,
+  Users,
+  Shield,
+  MessageSquare,
+  Monitor,
+  ShieldCheck,
+  Activity,
+} from "lucide-react";
 
 export function Navbar({
   onOpenAuth,
@@ -9,6 +19,9 @@ export function Navbar({
   onToggleLiveTracking,
   onOpenBroadcast,
   onOpenRoomControls,
+  onOpenChatDrawer,
+  onOpenScreenShare,
+  onOpenRoomModeration,
   onOpenDiagnostics,
 }) {
   const { user, isAuthenticated, logout } = useAuth();
@@ -126,18 +139,18 @@ export function Navbar({
                 onClick={() => setDropdownOpen(!dropdownOpen)}
               >
                 <img
-                  src={user.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${user.name}`}
-                  alt={user.name}
+                  src={user?.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${user?.name || "User"}`}
+                  alt={user?.name || "User"}
                   className="user-avatar-sm"
                 />
-                <span className="profile-name">{user.name}</span>
+                <span className="profile-name">{user?.name || "Colleague"}</span>
               </button>
 
               {dropdownOpen && (
                 <div className="profile-dropdown">
                   <div className="dropdown-header">
-                    <p className="dropdown-user-name">{user.name}</p>
-                    <p className="dropdown-user-email">{user.email}</p>
+                    <p className="dropdown-user-name">{user?.name}</p>
+                    <p className="dropdown-user-email">{user?.email}</p>
                   </div>
                   <div className="dropdown-divider" />
                   <button

@@ -48,7 +48,7 @@ export function renderPresentationScreen(ctx, {
   const rx = x - width / 2;
   const ry = y - height / 2;
   ctx.beginPath();
-  ctx.roundRect(rx, ry, width, height, 8);
+  if (ctx.roundRect) { ctx.roundRect(rx, ry, width, height, 8); } else { ctx.rect(rx, ry, width, height); }
   ctx.fill();
   ctx.stroke();
 
