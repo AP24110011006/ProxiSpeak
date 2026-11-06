@@ -3,6 +3,7 @@ import { OfficeLayout } from "../models/OfficeLayout.js";
 import { getEligibleChatRecipients, createSpatialMessage } from "../services/spatialChatService.js";
 import { roomModerationService } from "../services/roomModerationService.js";
 import { meshDiagnosticsService } from "../services/meshDiagnosticsService.js";
+import { screenShareService } from "../services/screenShareService.js";
 
 // In-memory registry of live active colleagues in the office
 const liveUsers = new Map();
@@ -333,8 +334,11 @@ export function setupProximitySocket(io) {
      */
     socket.on("chat:send", async (data = {}) => {
       try {
-        const { content, radius = DEFAULT_EARSHOT_RADIUS, isBroadcast = false } = data;
-        if (!content || typeof content !== "string" || !content.trim()) return;
+        const raw = typeof data === "string" ? data : (data?.content ?? "");
+        const content = typeof raw === "string" ? raw : (raw?.content || "");
+        const radius = Number(data?.radius) || DEFAULT_EARSHOT_RADIUS;
+        const isBroadcast = Boolean(data?.isBroadcast);
+        if (!content || !content.trim()) return;
 
         const isRoomLocked = roomModerationService.getStatus(user.zone)?.isLocked || false;
         const eligiblePeers = getEligibleChatRecipients({
@@ -426,6 +430,45 @@ export function setupProximitySocket(io) {
         io.emit("room:lock-status", res);
       } catch (err) {
         socket.emit("room:error", { message: err.message });
+      }
+    });
+
+    /**
+     * Week 4: Real-time Screen Sharing Coordination
+     */
+    socket.on("screenshare:start", async (data = {}) => {
+      try {
+        const roomTarget = data.room || user.zone;
+        const session = await screenShareService.startSession({
+          roomId: roomTarget,
+          roomName: roomTarget,
+          presenterId: socket.id,
+          presenterName: user.name,
+          resolution: data.resolution || '1080p',
+          hasAudio: data.hasAudio !== false,
+        });
+
+        io.emit("screenshare:active", {
+          sessionId: session.sessionId,
+          roomId: roomTarget,
+          presenterId: socket.id,
+          presenterName: user.name,
+          resolution: session.resolution,
+        });
+      } catch (err) {
+        console.error("[ScreenShare] Start error:", err);
+      }
+    });
+
+    socket.on("screenshare:stop", async (data = {}) => {
+      try {
+        const roomTarget = data.room || user.zone;
+        io.emit("screenshare:stopped", {
+          roomId: roomTarget,
+          presenterId: socket.id,
+        });
+      } catch (err) {
+        console.error("[ScreenShare] Stop error:", err);
       }
     });
 

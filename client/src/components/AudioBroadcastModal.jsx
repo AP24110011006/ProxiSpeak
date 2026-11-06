@@ -156,8 +156,69 @@ export function AudioBroadcastModal({
     try {
       setError(null);
       await login("admin@proxispeak.com", "admin123");
+      return true;
     } catch {
       setError("Could not sign in with demo admin credentials. Please use the Sign In modal.");
+      return false;
+    }
+  };
+
+  // Generate synthetic sample voice note for frictionless 1-click testing
+  const handleUseDemoVoice = () => {
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const sampleRate = audioCtx.sampleRate;
+      const duration = 2.5;
+      const numChannels = 1;
+      const frameCount = Math.floor(sampleRate * duration);
+      const audioBuffer = audioCtx.createBuffer(numChannels, frameCount, sampleRate);
+      const channelData = audioBuffer.getChannelData(0);
+
+      for (let i = 0; i < frameCount; i++) {
+        const t = i / sampleRate;
+        const envelope = Math.exp(-t * 1.2) * Math.min(1, t * 12);
+        channelData[i] = (
+          0.4 * Math.sin(2 * Math.PI * 440 * t) +
+          0.3 * Math.sin(2 * Math.PI * 554.37 * t) +
+          0.2 * Math.sin(2 * Math.PI * 659.25 * t)
+        ) * envelope;
+      }
+
+      const numOfChan = numChannels;
+      const length = frameCount * numOfChan * 2 + 44;
+      const out = new DataView(new ArrayBuffer(length));
+      let pos = 0;
+      function writeStr(s) { for (let i = 0; i < s.length; i++) out.setUint8(pos++, s.charCodeAt(i)); }
+      writeStr("RIFF"); out.setUint32(pos, length - 8, true); pos += 4;
+      writeStr("WAVE"); writeStr("fmt ");
+      out.setUint32(pos, 16, true); pos += 4;
+      out.setUint16(pos, 1, true); pos += 2;
+      out.setUint16(pos, numOfChan, true); pos += 2;
+      out.setUint32(pos, sampleRate, true); pos += 4;
+      out.setUint32(pos, sampleRate * 2 * numOfChan, true); pos += 4;
+      out.setUint16(pos, numOfChan * 2, true); pos += 2;
+      out.setUint16(pos, 16, true); pos += 2;
+      writeStr("data");
+      out.setUint32(pos, length - pos - 4, true); pos += 4;
+
+      for (let i = 0; i < frameCount; i++) {
+        const sample = Math.max(-1, Math.min(1, channelData[i]));
+        out.setInt16(pos, sample < 0 ? sample * 32768 : sample * 32767, true);
+        pos += 2;
+      }
+
+      const blob = new Blob([out.buffer], { type: "audio/wav" });
+      setRecordedBlob(blob);
+      setRecordingSeconds(3);
+      const url = URL.createObjectURL(blob);
+      setAudioUrl(url);
+      if (!title) {
+        setTitle(`Desk Voice Announcement (${userPos.zone || "Reception"})`);
+      }
+      setError(null);
+      audioCtx.close();
+    } catch (err) {
+      console.error("Demo audio generation error:", err);
     }
   };
 
@@ -165,8 +226,19 @@ export function AudioBroadcastModal({
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!isAuthenticated) {
-      setError("Please sign in to publish an audio broadcast.");
-      return;
+      // Auto-authenticate with demo admin credentials to eliminate friction
+      try {
+        setIsSubmitting(true);
+        const ok = await handleQuickAdminLogin();
+        if (!ok) {
+          setIsSubmitting(false);
+          return;
+        }
+      } catch {
+        setIsSubmitting(false);
+        setError("Please sign in to publish an audio broadcast.");
+        return;
+      }
     }
 
     if (!title.trim()) {
@@ -244,266 +316,293 @@ export function AudioBroadcastModal({
           </button>
         </div>
 
-        {/* Current Anchor Location Callout */}
-        <div className="broadcast-anchor-card">
-          <div className="anchor-icon">
-            <MapPin size={16} />
-          </div>
-          <div className="anchor-info">
-            <span className="anchor-label">Spatial Anchor Coordinate:</span>
-            <strong className="anchor-zone">{userPos.zone || "Main Floor"}</strong>
-            <span className="anchor-coords">
-              (X: {Math.round(userPos.x)}, Y: {Math.round(userPos.y)})
-            </span>
-          </div>
-        </div>
+        <form onSubmit={handleSubmit} className="broadcast-modal-form">
+          <div className="broadcast-modal-body">
+            {/* Current Anchor Location Callout */}
+            <div className="broadcast-anchor-card">
+              <div className="anchor-icon">
+                <MapPin size={16} />
+              </div>
+              <div className="anchor-info">
+                <span className="anchor-label">Spatial Anchor Coordinate:</span>
+                <strong className="anchor-zone">{userPos.zone || "Main Floor"}</strong>
+                <span className="anchor-coords">
+                  (X: {Math.round(userPos.x)}, Y: {Math.round(userPos.y)})
+                </span>
+              </div>
+            </div>
 
-        {/* Auth Notice if not logged in */}
-        {!isAuthenticated && (
-          <div className="auth-alert-box">
-            <AlertCircle size={18} className="alert-icon" />
-            <div className="auth-alert-content">
-              <strong>Account Authentication Required</strong>
-              <p>Sign in to anchor audio broadcasts to your office profile.</p>
-              <div className="auth-quick-actions">
-                <button type="button" className="quick-admin-btn" onClick={handleQuickAdminLogin}>
-                  Sign In as Admin (admin@proxispeak.com)
-                </button>
-                <button type="button" className="btn-link" onClick={onOpenAuth}>
-                  Use Other Account
-                </button>
+            {/* Auth Notice if not logged in */}
+            {!isAuthenticated && (
+              <div className="auth-alert-box">
+                <AlertCircle size={18} className="alert-icon" />
+                <div className="auth-alert-content">
+                  <strong>Account Authentication Required</strong>
+                  <p>Sign in to anchor audio broadcasts to your office profile. Click below or simply click &quot;Publish&quot; for automatic demo login.</p>
+                  <div className="auth-quick-actions">
+                    <button type="button" className="quick-admin-btn" onClick={handleQuickAdminLogin}>
+                      1-Click Sign In (admin@proxispeak.com)
+                    </button>
+                    <button type="button" className="btn-link" onClick={onOpenAuth}>
+                      Use Other Account
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Error or Success Alerts */}
+            {error && (
+              <div className="alert-banner error">
+                <AlertCircle size={16} />
+                <span>{error}</span>
+              </div>
+            )}
+            {success && (
+              <div className="alert-banner success">
+                <CheckCircle size={16} />
+                <span>{success}</span>
+              </div>
+            )}
+
+            {/* Mode Tabs (Microphone vs File Upload) */}
+            <div className="source-tabs-row">
+              <button
+                type="button"
+                className={`source-tab-btn ${mode === "record" ? "active" : ""}`}
+                onClick={() => setMode("record")}
+              >
+                <Mic size={15} />
+                <span>Record Voice Note</span>
+              </button>
+              <button
+                type="button"
+                className={`source-tab-btn ${mode === "upload" ? "active" : ""}`}
+                onClick={() => setMode("upload")}
+              >
+                <Upload size={15} />
+                <span>Upload Audio File</span>
+              </button>
+            </div>
+
+            {/* Recording Mode UI */}
+            {mode === "record" && (
+              <div className="record-stage-card">
+                {!recordedBlob ? (
+                  <div className="record-control-panel">
+                    {isRecording ? (
+                      <div className="recording-active-view">
+                        <div className="pulsing-record-core">
+                          <span className="record-pulse-ring" />
+                          <Mic size={32} color="#ffffff" />
+                        </div>
+                        <div className="record-timer-text">{formatTimer(recordingSeconds)}</div>
+                        <p className="record-hint">Speak clearly into your microphone...</p>
+                        <button
+                          type="button"
+                          className="btn btn-danger record-stop-btn"
+                          onClick={stopRecording}
+                        >
+                          <Square size={16} />
+                          <span>Finish Recording</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="record-idle-view">
+                        <div className="record-mic-halo">
+                          <Mic size={36} color="#4f46e5" />
+                        </div>
+                        <h5>Capture Live Voice Memo</h5>
+                        <p className="record-idle-desc">
+                          Record a voice announcement, greeting, or standup update.
+                        </p>
+                        <div style={{ display: "flex", gap: "8px", justifyContent: "center", flexWrap: "wrap", marginTop: "8px" }}>
+                          <button
+                            type="button"
+                            className="btn btn-primary record-start-btn"
+                            onClick={startRecording}
+                          >
+                            <Mic size={16} />
+                            <span>Start Recording</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="demo-voice-btn"
+                            onClick={handleUseDemoVoice}
+                            title="Generate a sample melodic audio clip for instant testing"
+                          >
+                            <Volume2 size={14} />
+                            <span>Use Demo Voice Note</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="recorded-preview-panel">
+                    <div className="preview-top-row">
+                      <div className="preview-file-tag">
+                        <Volume2 size={16} color="#10b981" />
+                        <span>Voice memo recorded ({formatTimer(recordingSeconds)})</span>
+                      </div>
+                      <button
+                        type="button"
+                        className="re-record-btn"
+                        onClick={() => {
+                          setRecordedBlob(null);
+                          setAudioUrl(null);
+                        }}
+                      >
+                        <RefreshCw size={13} />
+                        <span>Re-record</span>
+                      </button>
+                    </div>
+
+                    {audioUrl && (
+                      <div className="preview-player-row">
+                        <audio
+                          ref={previewAudioRef}
+                          src={audioUrl}
+                          onEnded={() => setIsPlayingPreview(false)}
+                        />
+                        <button
+                          type="button"
+                          className="preview-play-toggle"
+                          onClick={togglePreviewPlay}
+                        >
+                          {isPlayingPreview ? <Pause size={16} /> : <Play size={16} />}
+                          <span>{isPlayingPreview ? "Pause" : "Play Preview"}</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Upload Mode UI */}
+            {mode === "upload" && (
+              <div className="upload-stage-card">
+                <label className="file-dropzone">
+                  <input
+                    type="file"
+                    accept="audio/mp3,audio/wav,audio/webm,audio/ogg,audio/m4a,audio/*"
+                    onChange={handleFileChange}
+                    className="file-hidden-input"
+                  />
+                  <div className="dropzone-inner">
+                    <div className="upload-icon-circle">
+                      <Upload size={28} color="#4f46e5" />
+                    </div>
+                    {selectedFile ? (
+                      <div>
+                        <strong className="selected-filename">{selectedFile.name}</strong>
+                        <p className="selected-filesize">
+                          {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB &bull; Ready to publish
+                        </p>
+                      </div>
+                    ) : (
+                      <div>
+                        <strong className="dropzone-text">Click to choose an audio file</strong>
+                        <p className="dropzone-subtext">Supports MP3, WAV, WEBM, M4A, OGG up to 25 MB</p>
+                      </div>
+                    )}
+                  </div>
+                </label>
+
+                {!selectedFile && (
+                  <div style={{ marginTop: "10px", textAlign: "center" }}>
+                    <button
+                      type="button"
+                      className="demo-voice-btn"
+                      onClick={handleUseDemoVoice}
+                      title="Generate sample melodic voice note"
+                    >
+                      <Volume2 size={13} />
+                      <span>Or Use Demo Sample Audio</span>
+                    </button>
+                  </div>
+                )}
+
+                {audioUrl && (
+                  <div className="upload-preview-player">
+                    <audio
+                      ref={previewAudioRef}
+                      src={audioUrl}
+                      onEnded={() => setIsPlayingPreview(false)}
+                    />
+                    <button
+                      type="button"
+                      className="preview-play-toggle"
+                      onClick={togglePreviewPlay}
+                    >
+                      {isPlayingPreview ? <Pause size={16} /> : <Play size={16} />}
+                      <span>{isPlayingPreview ? "Pause" : "Play Preview"}</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Broadcast Title */}
+            <div className="form-group">
+              <label className="form-label" htmlFor="broadcast-title">
+                Broadcast Title *
+              </label>
+              <input
+                id="broadcast-title"
+                type="text"
+                className="form-input"
+                placeholder="e.g. Q4 Product Roadmap Sync, Dev Team Standup, Coffee Lounge Music"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+              />
+            </div>
+
+            {/* Category Selector */}
+            <div className="form-group">
+              <label className="form-label">Category</label>
+              <div className="category-options-grid">
+                {CATEGORIES.map((cat) => (
+                  <button
+                    type="button"
+                    key={cat.id}
+                    className={`category-select-chip ${category === cat.id ? "active" : ""}`}
+                    onClick={() => setCategory(cat.id)}
+                  >
+                    <span className="cat-icon">{cat.icon}</span>
+                    <span className="cat-label">{cat.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Hearing Radius Slider */}
+            <div className="form-group">
+              <div className="slider-header-row">
+                <label className="form-label">
+                  Acoustic Earshot Radius: <strong>{radius}px (~{Math.round(radius / 10)}m)</strong>
+                </label>
+              </div>
+              <input
+                type="range"
+                min="60"
+                max="260"
+                step="10"
+                value={radius}
+                onChange={(e) => setRadius(Number(e.target.value))}
+                className="corporate-slider"
+              />
+              <div className="slider-hints-row">
+                <span>Personal Desk (60px)</span>
+                <span>Room (120px)</span>
+                <span>Floor Wide (260px)</span>
               </div>
             </div>
           </div>
-        )}
 
-        {/* Error or Success Alerts */}
-        {error && (
-          <div className="alert-banner error">
-            <AlertCircle size={16} />
-            <span>{error}</span>
-          </div>
-        )}
-        {success && (
-          <div className="alert-banner success">
-            <CheckCircle size={16} />
-            <span>{success}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="broadcast-form">
-          {/* Mode Tabs (Microphone vs File Upload) */}
-          <div className="source-tabs-row">
-            <button
-              type="button"
-              className={`source-tab-btn ${mode === "record" ? "active" : ""}`}
-              onClick={() => setMode("record")}
-            >
-              <Mic size={15} />
-              <span>Record Voice Note</span>
-            </button>
-            <button
-              type="button"
-              className={`source-tab-btn ${mode === "upload" ? "active" : ""}`}
-              onClick={() => setMode("upload")}
-            >
-              <Upload size={15} />
-              <span>Upload Audio File</span>
-            </button>
-          </div>
-
-          {/* Recording Mode UI */}
-          {mode === "record" && (
-            <div className="record-stage-card">
-              {!recordedBlob ? (
-                <div className="record-control-panel">
-                  {isRecording ? (
-                    <div className="recording-active-view">
-                      <div className="pulsing-record-core">
-                        <span className="record-pulse-ring" />
-                        <Mic size={32} color="#ffffff" />
-                      </div>
-                      <div className="record-timer-text">{formatTimer(recordingSeconds)}</div>
-                      <p className="record-hint">Speak clearly into your microphone...</p>
-                      <button
-                        type="button"
-                        className="btn btn-danger record-stop-btn"
-                        onClick={stopRecording}
-                      >
-                        <Square size={16} />
-                        <span>Finish Recording</span>
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="record-idle-view">
-                      <div className="record-mic-halo">
-                        <Mic size={36} color="#4f46e5" />
-                      </div>
-                      <h5>Capture Live Voice Memo</h5>
-                      <p className="record-idle-desc">
-                        Record a voice announcement, greeting, or standup update.
-                      </p>
-                      <button
-                        type="button"
-                        className="btn btn-primary record-start-btn"
-                        onClick={startRecording}
-                      >
-                        <Mic size={16} />
-                        <span>Start Recording</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="recorded-preview-panel">
-                  <div className="preview-top-row">
-                    <div className="preview-file-tag">
-                      <Volume2 size={16} color="#10b981" />
-                      <span>Voice memo recorded ({formatTimer(recordingSeconds)})</span>
-                    </div>
-                    <button
-                      type="button"
-                      className="re-record-btn"
-                      onClick={() => {
-                        setRecordedBlob(null);
-                        setAudioUrl(null);
-                      }}
-                    >
-                      <RefreshCw size={13} />
-                      <span>Re-record</span>
-                    </button>
-                  </div>
-
-                  {audioUrl && (
-                    <div className="preview-player-row">
-                      <audio
-                        ref={previewAudioRef}
-                        src={audioUrl}
-                        onEnded={() => setIsPlayingPreview(false)}
-                      />
-                      <button
-                        type="button"
-                        className="preview-play-toggle"
-                        onClick={togglePreviewPlay}
-                      >
-                        {isPlayingPreview ? <Pause size={16} /> : <Play size={16} />}
-                        <span>{isPlayingPreview ? "Pause" : "Play Preview"}</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Upload Mode UI */}
-          {mode === "upload" && (
-            <div className="upload-stage-card">
-              <label className="file-dropzone">
-                <input
-                  type="file"
-                  accept="audio/mp3,audio/wav,audio/webm,audio/ogg,audio/m4a,audio/*"
-                  onChange={handleFileChange}
-                  className="file-hidden-input"
-                />
-                <div className="dropzone-inner">
-                  <div className="upload-icon-circle">
-                    <Upload size={28} color="#4f46e5" />
-                  </div>
-                  {selectedFile ? (
-                    <div>
-                      <strong className="selected-filename">{selectedFile.name}</strong>
-                      <p className="selected-filesize">
-                        {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB &bull; Ready to publish
-                      </p>
-                    </div>
-                  ) : (
-                    <div>
-                      <strong className="dropzone-text">Click to choose an audio file</strong>
-                      <p className="dropzone-subtext">Supports MP3, WAV, WEBM, M4A, OGG up to 25 MB</p>
-                    </div>
-                  )}
-                </div>
-              </label>
-
-              {audioUrl && (
-                <div className="upload-preview-player">
-                  <audio
-                    ref={previewAudioRef}
-                    src={audioUrl}
-                    onEnded={() => setIsPlayingPreview(false)}
-                  />
-                  <button
-                    type="button"
-                    className="preview-play-toggle"
-                    onClick={togglePreviewPlay}
-                  >
-                    {isPlayingPreview ? <Pause size={16} /> : <Play size={16} />}
-                    <span>{isPlayingPreview ? "Pause" : "Play Preview"}</span>
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Broadcast Title */}
-          <div className="form-group">
-            <label className="form-label" htmlFor="broadcast-title">
-              Broadcast Title *
-            </label>
-            <input
-              id="broadcast-title"
-              type="text"
-              className="form-input"
-              placeholder="e.g. Q4 Product Roadmap Sync, Dev Team Standup, Coffee Lounge Music"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            />
-          </div>
-
-          {/* Category Selector */}
-          <div className="form-group">
-            <label className="form-label">Category</label>
-            <div className="category-options-grid">
-              {CATEGORIES.map((cat) => (
-                <button
-                  type="button"
-                  key={cat.id}
-                  className={`category-select-chip ${category === cat.id ? "active" : ""}`}
-                  onClick={() => setCategory(cat.id)}
-                >
-                  <span className="cat-icon">{cat.icon}</span>
-                  <span className="cat-label">{cat.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Hearing Radius Slider */}
-          <div className="form-group">
-            <div className="slider-header-row">
-              <label className="form-label">
-                Acoustic Earshot Radius: <strong>{radius}px (~{Math.round(radius / 10)}m)</strong>
-              </label>
-            </div>
-            <input
-              type="range"
-              min="60"
-              max="260"
-              step="10"
-              value={radius}
-              onChange={(e) => setRadius(Number(e.target.value))}
-              className="corporate-slider"
-            />
-            <div className="slider-hints-row">
-              <span>Personal Desk (60px)</span>
-              <span>Room (120px)</span>
-              <span>Floor Wide (260px)</span>
-            </div>
-          </div>
-
-          {/* Actions */}
+          {/* Sticky Actions Bar */}
           <div className="modal-actions-bar">
             <button
               type="button"
