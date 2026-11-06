@@ -9,6 +9,8 @@ import { RoomControlsModal } from "./components/RoomControlsModal.jsx";
 import { SpatialChatDrawer } from "./components/SpatialChatDrawer.jsx";
 import { ScreenShareModal } from "./components/ScreenShareModal.jsx";
 import { RoomModerationModal } from "./components/RoomModerationModal.jsx";
+import { MeshDiagnosticsModal } from "./components/MeshDiagnosticsModal.jsx";
+import { ScreenSharePresenterBanner } from "./components/ScreenSharePresenterBanner.jsx";
 import { getSocket, emitOfficeMove } from "./services/socket.js";
 import { webrtc } from "./services/webrtc.js";
 import { spatialMixer } from "./services/spatialAudio.js";
@@ -49,6 +51,7 @@ function ProxiSpeakMain() {
   const [isChatDrawerOpen, setIsChatDrawerOpen] = useState(false);
   const [isScreenShareOpen, setIsScreenShareOpen] = useState(false);
   const [isModerationOpen, setIsModerationOpen] = useState(false);
+  const [isDiagnosticsOpen, setIsDiagnosticsOpen] = useState(false);
 
   // 1. Initial Office Presence Broadcast & WebRTC Setup
   useEffect(() => {
@@ -275,12 +278,19 @@ function ProxiSpeakMain() {
         onOpenChatDrawer={() => setIsChatDrawerOpen(true)}
         onOpenScreenShare={() => setIsScreenShareOpen(true)}
         onOpenRoomModeration={() => setIsModerationOpen(true)}
+        onOpenDiagnostics={() => setIsDiagnosticsOpen(true)}
       />
 
       {/* Main Workspace (60 FPS Canvas + Live Proximity Coworkers Panel) */}
       <main className="main-workspace corporate-workspace">
         {/* Left Side: 60 FPS HTML5 Canvas Virtual World */}
         <section className="map-panel canvas-panel-container">
+          <ScreenSharePresenterBanner
+            presenterName="Lead Architect"
+            roomName="Executive Glass Boardroom"
+            resolution="1080p"
+            onWatchPresentation={() => setIsScreenShareOpen(true)}
+          />
           <OfficeCanvas
             userPos={officePos}
             targetPos={targetPos}
@@ -383,6 +393,14 @@ function ProxiSpeakMain() {
           const socket = getSocket();
           socket.emit("room:toggle-lock", { roomId: officePos?.zone });
         }}
+      />
+
+      {/* Week 4 WebRTC Mesh Diagnostics Modal */}
+      <MeshDiagnosticsModal
+        isOpen={isDiagnosticsOpen}
+        onClose={() => setIsDiagnosticsOpen(false)}
+        livePeers={livePeers}
+        currentZone={officePos?.zone}
       />
     </div>
   );
