@@ -8,9 +8,9 @@ An enterprise-grade, browser-based 2D virtual office platform featuring 60 FPS H
 
 | Role | Engineer | Email | Primary Branches | Core Scope |
 | :--- | :--- | :--- | :--- | :--- |
-| **Backend Architect & Systems Lead** | **Koneti Manikanth** | `manikanth9878@gmail.com` | `manikanth` | Node.js/Express, Socket.IO, MongoDB, spatial chat, mesh telemetry, host moderation RBAC |
-| **Frontend UI/UX & React Engineer** | **Harshitha Rao** | `harshithar978@gmail.com` | `harshitha` / `harshita` | React 19, modal dialogs, spatial chat drawer, presentation mode, responsive design system |
-| **Canvas Spatial DSP & Audio Engineer** | **Leela Sai Likhitha Yekollu** | `sailikhitha.yekollu@gmail.com` | `likhitha` / `likhita` | 60 FPS HTML5 Canvas engine, Web Audio API, HRTF binaural panning, sidechain ducking, Sabine RT60 reverb |
+| **Backend Architect & Systems Lead** | **Koneti Manikanth** | `manikanth9878@gmail.com` | `manikanth` | Node.js/Express, Socket.IO, MongoDB, spatial chat, mesh telemetry, host moderation RBAC, screen share session manager |
+| **Frontend UI/UX & React Engineer** | **Harshitha Rao** | `harshithar978@gmail.com` | `harshitha` / `harshita` | React 19, modal dialogs, spatial chat drawer, presentation mode, mesh diagnostics dashboard, responsive design system |
+| **Canvas Spatial DSP & Audio Engineer** | **Leela Sai Likhitha Yekollu** | `sailikhitha.yekollu@gmail.com` | `likhitha` / `likhita` | 60 FPS HTML5 Canvas engine, Web Audio API, HRTF binaural panning, sidechain ducking, Sabine RT60 reverb, holographic shaders |
 
 ---
 
@@ -39,11 +39,12 @@ flowchart TD
 
     subgraph W4["Week 4: Enterprise Collaboration & Telemetry"]
         D1["Spatial In-Earshot Chat (SpatialChatDrawer.jsx, SpatialMessage.js)"]
-        D2["WebRTC Mesh Diagnostics (meshDiagnosticsService.js)"]
-        D3["Room Governance & Host RBAC (RoomModerationModal.jsx)"]
-        D4["1080p WebRTC Screen Sharing (ScreenShareModal.jsx, screenShareWebRTC.js)"]
+        D2["WebRTC Mesh Diagnostics (MeshDiagnosticsModal.jsx, meshDiagnosticsService.js)"]
+        D3["Room Governance & Host RBAC (RoomModerationModal.jsx, roomModerationService.js)"]
+        D4["1080p Screen Sharing (ScreenShareModal.jsx, screenShareService.js, ScreenShareSession.js)"]
         D5["-12dB Sidechain Voice Ducking (audioDuckingProcessor.js)"]
-        D6["Sabine RT60 Reverb Zones (reverbZoneManager.js)"]
+        D6["Sabine RT60 Reverb Zones & Shaders (reverbZoneManager.js, canvasScreenShareOverlay.js)"]
+        D7["Adaptive Bitrate Ladder (adaptiveBandwidthManager.js)"]
     end
 
     W1 --> W2 --> W3 --> W4
@@ -54,7 +55,7 @@ flowchart TD
 ## 🛠️ Weekly Deliverables by Role
 
 ### 1. Week 1 — Core Infrastructure
-- **Koneti Manikanth (Backend)**: Express + Socket.IO server, Floor 4 seed data (`officeLayout`), real-time `office:users` state synchronization, MongoDB Schemas (`User`, `OfficeLayout`, `AudioBeacon`).
+- **Koneti Manikanth (Backend)**: Express + Socket.IO server, Floor 4 seed data (`officeLayout`), real-time `office:users` state synchronization, MongoDB Schemas (`User`, `OfficeLayout`, `Audio`).
 - **Harshitha Rao (Frontend)**: React 19 corporate layout, `Navbar.jsx`, `AuthModal.jsx`, `Sidebar.jsx`, CSS design system.
 - **Leela Sai Likhitha Yekollu (Canvas DSP)**: HTML5 2D Canvas viewport (1000x750 normalized), WASD/Arrow keyboard loop, avatar drawing, proximity radius rings.
 
@@ -71,19 +72,30 @@ flowchart TD
 ### 4. Week 4 — Collaboration, Telemetry & Host Governance
 - **Koneti Manikanth (Backend)**:
   - `SpatialMessage.js`: Proximity text schema with 600-second TTL indexing and geospatial coordinate encapsulation.
+  - `ScreenShareSession.js`: Real-time corporate screen sharing session tracking with adaptive bitrate ladder logs.
   - `spatialChatService.js`: Acoustic boundary message filtering preventing cross-room leakage.
   - `meshDiagnosticsService.js`: Real-time RTT latency, jitter, packet loss, and SLA health monitoring.
   - `roomModerationService.js`: Host RBAC, Soundproof privacy lock, Mute-All, and participant ejection.
-  - Test suites: `week4_spatial_chat.test.mjs`, `week4_mesh_diagnostics.test.mjs`, `week4_room_moderation.test.mjs`.
+  - `screenShareService.js`: Multi-room presentation session manager with viewer enrollment and duration tracking.
+  - REST Routers: `/api/chat`, `/api/moderation`, `/api/mesh`, `/api/screenshare`.
+  - Test suites: `week4_spatial_chat.test.mjs`, `week4_mesh_diagnostics.test.mjs`, `week4_room_moderation.test.mjs`, `week4_screen_share_session.test.mjs`, `week4_api_integration.test.mjs`.
+  - Documentation: [`server/docs/WEEK4_ENTERPRISE_COLLABORATION_BACKEND.md`](file:///c:/ProxiSpeak/server/docs/WEEK4_ENTERPRISE_COLLABORATION_BACKEND.md).
 - **Harshitha Rao (Frontend)**:
   - `SpatialChatDrawer.jsx`: Proximity text drawer with earshot distance indicators and confidential room locks.
   - `ScreenShareModal.jsx`: 1080p WebRTC presentation viewport with full-screen, attendee roster, and audio pass-through.
+  - `ScreenSharePresenterBanner.jsx`: In-canvas live presentation status banner with quick-watch navigation.
   - `RoomModerationModal.jsx`: Governance modal with host controls (Mute All, Kick, Soundproof Lock, Audit Logs).
-  - Integration into `Navbar.jsx` and `App.jsx`.
+  - `MeshDiagnosticsModal.jsx`: WebRTC mesh telemetry dashboard with RTT, jitter, packet loss meters, and SLA compliance score.
+  - Integration into `Navbar.jsx` (Diagnostics shortcut) and `App.jsx`.
+  - Documentation: [`client/docs/WEEK4_FRONTEND_COMPLETE.md`](file:///c:/ProxiSpeak/client/docs/WEEK4_FRONTEND_COMPLETE.md), [`client/docs/WEEK4_MESH_DIAGNOSTICS_UI.md`](file:///c:/ProxiSpeak/client/docs/WEEK4_MESH_DIAGNOSTICS_UI.md).
 - **Leela Sai Likhitha Yekollu (Canvas DSP)**:
   - `audioDuckingProcessor.js`: -12 dB sidechain voice ducking with smooth exponential gain ramps.
   - `screenShareWebRTC.js`: Multi-track WebRTC display media capture manager with adaptive bitrate throttling (500 kbps – 4000 kbps).
   - `reverbZoneManager.js`: Zone-based acoustic reverb with procedural Sabine impulse response generation (RT60: 0.25s to 2.8s).
+  - `canvasScreenShareOverlay.js`: 60 FPS HTML5 Canvas presentation screen display in Boardroom & Sabine RT60 reverb aura rings.
+  - `adaptiveBandwidthManager.js`: Client-side WebRTC network quality estimator and resolution downgrade ladder (1080p -> 720p -> 480p).
+  - Test suite: `client/tests/week4_dsp_pipeline.test.mjs`.
+  - Documentation: [`client/docs/WEEK4_CANVAS_PRESENTATION_RENDERING.md`](file:///c:/ProxiSpeak/client/docs/WEEK4_CANVAS_PRESENTATION_RENDERING.md), [`client/docs/WEEK4_ADAPTIVE_BANDWIDTH_SPEC.md`](file:///c:/ProxiSpeak/client/docs/WEEK4_ADAPTIVE_BANDWIDTH_SPEC.md).
 
 ---
 
@@ -115,6 +127,11 @@ npm run dev
 node server/tests/week4_spatial_chat.test.mjs
 node server/tests/week4_room_moderation.test.mjs
 node server/tests/week4_mesh_diagnostics.test.mjs
+node server/tests/week4_screen_share_session.test.mjs
+node server/tests/week4_api_integration.test.mjs
+
+# Canvas DSP test suite
+node client/tests/week4_dsp_pipeline.test.mjs
 
 # Frontend production build
 npm --prefix client run build
