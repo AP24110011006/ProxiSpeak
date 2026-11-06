@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { Volume2, Mic, MicOff, Headphones, Compass, ShieldCheck, Lock } from "lucide-react";
 import { OFFICE_ZONES, getOfficeZone } from "../utils/officeZones.js";
 import { isSoundproofZone } from "../utils/acousticZones.js";
+import { renderPresentationScreen } from "../utils/canvasScreenShareOverlay.js";
 
 export function OfficeCanvas({
   userPos,
@@ -216,6 +217,18 @@ export function OfficeCanvas({
         ctx.textAlign = "left";
         ctx.fillText("🔒 Soundproof Boardroom", 406, 60);
         ctx.restore();
+
+        // Week 4: Render Interactive Presentation Screen & Hologram in Boardroom
+        renderPresentationScreen(ctx, {
+          isActive: true,
+          x: 580,
+          y: 160,
+          width: 140,
+          height: 75,
+          presenterName: "Lead Architect",
+          resolution: "1080p",
+          time: timestamp,
+        });
 
         // Draw Click-to-Move Target Path
         const target = targetRef.current;
