@@ -154,3 +154,21 @@ export async function getRecentNearbyMessages({ x, y, radius = 160, zone }) {
     return Math.hypot(m.x - x, m.y - y) <= Math.max(radius, m.radius);
   });
 }
+
+
+/**
+ * Retrieve recent messages recorded in a specific office zone
+ */
+export async function getRecentMessagesForZone(zone, limit = 50) {
+  if (mongoose.connection && mongoose.connection.readyState === 1) {
+    try {
+      return await SpatialMessage.find({ zone })
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .lean();
+    } catch (err) {
+      // fallback
+    }
+  }
+  return inMemoryMessages.filter((m) => m.zone === zone).slice(0, limit);
+}
