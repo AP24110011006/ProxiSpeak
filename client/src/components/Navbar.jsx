@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../context/useAuth.js";
-import { User as UserIcon, LogOut, Radio, Users, Shield, MessageSquare, Monitor, ShieldCheck } from "lucide-react";
+import { User as UserIcon, LogOut, Radio, Users, Shield, MessageSquare, Monitor, ShieldCheck, Activity } from "lucide-react";
 
 export function Navbar({
   onOpenAuth,
@@ -9,6 +9,7 @@ export function Navbar({
   onToggleLiveTracking,
   onOpenBroadcast,
   onOpenRoomControls,
+  onOpenDiagnostics,
 }) {
   const { user, isAuthenticated, logout } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -83,6 +84,17 @@ export function Navbar({
           >
             <ShieldCheck size={16} />
             <span>Moderation</span>
+          </button>
+
+          {/* Week 4 WebRTC Mesh Diagnostics Modal */}
+          <button
+            className="btn btn-secondary diag-nav-btn"
+            onClick={onOpenDiagnostics}
+            style={{ display: "flex", alignItems: "center", gap: "6px" }}
+            title="WebRTC network latency and SLA diagnostics"
+          >
+            <Activity size={16} />
+            <span>Diagnostics</span>
           </button>
 
           {/* Week 3 Acoustic Rooms Button */}

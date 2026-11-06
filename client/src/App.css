@@ -5597,3 +5597,339 @@
 .audit-desc strong {
   color: #f8fafc;
 }
+
+
+/* ==========================================================================
+   Week 4 - WebRTC Mesh Diagnostics Modal & Screen Share Banner Styles
+   ========================================================================== */
+
+.screenshare-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: linear-gradient(90deg, rgba(8, 145, 178, 0.15) 0%, rgba(15, 23, 42, 0.8) 100%);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  border-radius: 8px;
+  margin-bottom: 12px;
+  backdrop-filter: blur(8px);
+}
+
+.banner-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.banner-icon-pulse {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: rgba(6, 182, 212, 0.2);
+  border-radius: 50%;
+  animation: pulse-ring 2s infinite;
+}
+
+.presenter-badge {
+  background: rgba(6, 182, 212, 0.25);
+  color: #38bdf8;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 12px;
+  margin-right: 6px;
+}
+
+.banner-action-text {
+  font-size: 13px;
+  color: #e2e8f0;
+}
+
+.btn-watch-stream {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: #0284c7;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-watch-stream:hover {
+  background: #0369a1;
+  transform: translateY(-1px);
+}
+
+/* Diagnostics Modal Styles */
+.diagnostics-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(10, 15, 29, 0.82);
+  backdrop-filter: blur(6px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.diagnostics-modal-container {
+  width: 100%;
+  max-width: 680px;
+  background: #0f172a;
+  border: 1px solid rgba(52, 211, 153, 0.25);
+  border-radius: 14px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.diagnostics-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 23, 42, 0.95);
+}
+
+.diagnostics-title-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.diagnostics-icon-bubble {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: rgba(16, 185, 129, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.diagnostics-headline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.diagnostics-headline h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.diagnostics-subtitle {
+  margin: 2px 0 0 0;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.diagnostics-close-btn {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.diagnostics-close-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #f1f5f9;
+}
+
+.diagnostics-tabs {
+  display: flex;
+  background: rgba(30, 41, 59, 0.6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0 16px;
+}
+
+.diagnostics-tabs .tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 18px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.diagnostics-tabs .tab-btn.active {
+  color: #34d399;
+  border-bottom-color: #34d399;
+}
+
+.diagnostics-body {
+  padding: 24px;
+  max-height: 440px;
+  overflow-y: auto;
+}
+
+.diagnostics-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.stat-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.stat-value .unit {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.stat-subtext {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.quality-breakdown-card {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.quality-breakdown-card h4 {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  color: #cbd5e1;
+}
+
+.quality-bar-track {
+  height: 10px;
+  border-radius: 6px;
+  display: flex;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.05);
+  margin-bottom: 12px;
+}
+
+.bar-segment.excellent { background: #10b981; }
+.bar-segment.good { background: #06b6d4; }
+.bar-segment.degraded { background: #f43f5e; }
+
+.quality-legend {
+  display: flex;
+  gap: 16px;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.quality-legend .dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.quality-legend .dot.excellent { background: #10b981; }
+.quality-legend .dot.good { background: #06b6d4; }
+.quality-legend .dot.degraded { background: #f43f5e; }
+
+.peer-telemetry-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.peer-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.peer-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.peer-zone {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.peer-metrics {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.metric-pill {
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.metric-pill strong {
+  color: #f1f5f9;
+}
+
+.diagnostics-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(15, 23, 42, 0.95);
+}
+
+.sla-notice {
+  font-size: 11px;
+  color: #64748b;
+}
