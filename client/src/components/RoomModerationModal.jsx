@@ -37,8 +37,8 @@ export function RoomModerationModal({
   if (!isOpen) return null;
 
   return (
-    <div className="moderation-modal-overlay">
-      <div className="moderation-modal-container">
+    <div className="moderation-modal-overlay" onClick={onClose}>
+      <div className="moderation-modal-container" onClick={(e) => e.stopPropagation()}>
         {/* Header Bar */}
         <div className="moderation-header">
           <div className="moderation-title-wrap">

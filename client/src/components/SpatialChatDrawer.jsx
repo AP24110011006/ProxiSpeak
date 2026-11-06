@@ -10,6 +10,7 @@ import {
   Smile,
   Shield,
 } from "lucide-react";
+import { getSocket } from "../services/socket.js";
 
 /**
  * ProxiSpeak Week 4 — In-Earshot Spatial Chat Drawer
@@ -56,10 +57,54 @@ export function SpatialChatDrawer({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isOpen]);
 
+  // Real-time Socket listener for incoming in-earshot messages
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+
+    const handleIncoming = (incoming) => {
+      if (!incoming) return;
+      setMessages((prev) => {
+        if (incoming.id && prev.some((m) => m.id === incoming.id)) {
+          return prev;
+        }
+        return [
+          ...prev,
+          {
+            id: incoming.id || `msg-${Date.now()}-${Math.random()}`,
+            senderId: incoming.senderId,
+            senderName: incoming.senderName || "Colleague",
+            senderAvatar:
+              incoming.senderAvatar ||
+              `https://api.dicebear.com/7.x/bottts/svg?seed=${incoming.senderId || "peer"}`,
+            distance: incoming.distance || 0,
+            content: incoming.content,
+            zone: incoming.zone || currentZone,
+            timestamp:
+              incoming.timestamp ||
+              new Date().toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+            isSelf:
+              incoming.isSelf ||
+              incoming.senderId === (currentUser.id || "self"),
+          },
+        ];
+      });
+    };
+
+    socket.on("chat:message", handleIncoming);
+    return () => {
+      socket.off("chat:message", handleIncoming);
+    };
+  }, [currentUser.id, currentZone]);
+
   const handleSend = (e) => {
     e?.preventDefault();
     if (!inputVal.trim()) return;
 
+    const text = inputVal.trim();
     const newMsg = {
       id: `msg-${Date.now()}`,
       senderId: currentUser.id || "self",
@@ -67,7 +112,7 @@ export function SpatialChatDrawer({
       senderAvatar:
         currentUser.avatar || "https://api.dicebear.com/7.x/bottts/svg?seed=self",
       distance: 0,
-      content: inputVal.trim(),
+      content: text,
       zone: currentZone,
       timestamp: new Date().toLocaleTimeString([], {
         hour: "2-digit",
@@ -78,7 +123,7 @@ export function SpatialChatDrawer({
 
     setMessages((prev) => [...prev, newMsg]);
     if (onSendMessage) {
-      onSendMessage(newMsg);
+      onSendMessage(text);
     }
     setInputVal("");
   };
@@ -90,8 +135,8 @@ export function SpatialChatDrawer({
   if (!isOpen) return null;
 
   return (
-    <div className="spatial-chat-drawer-overlay">
-      <div className="spatial-chat-drawer">
+    <div className="spatial-chat-drawer-overlay" onClick={onClose}>
+      <div className="spatial-chat-drawer" onClick={(e) => e.stopPropagation()}>
         {/* Header Bar */}
         <div className="chat-drawer-header">
           <div className="header-title-wrap">

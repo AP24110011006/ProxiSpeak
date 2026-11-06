@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { AuthProvider } from "./context/AuthContext.jsx";
+import { useAuth } from "./context/useAuth.js";
 import { Navbar } from "./components/Navbar.jsx";
 import { OfficeCanvas } from "./components/OfficeCanvas.jsx";
 import { CoworkersPanel } from "./components/CoworkersPanel.jsx";
@@ -18,6 +19,7 @@ import { api } from "./services/api.js";
 import "./App.css";
 
 function ProxiSpeakMain() {
+  const { user } = useAuth();
   // Virtual Corporate Office Coordinates (Normalized 1000 x 750 architectural space)
   const [officePos, setOfficePos] = useState({
     x: 220,
@@ -360,10 +362,17 @@ function ProxiSpeakMain() {
         currentZone={officePos?.zone}
         radius={radius}
         livePeers={livePeers}
-        currentUser={{ name: "You", id: "self" }}
-        onSendMessage={(content) => {
+        currentUser={{
+          name: user?.displayName || user?.username || "You",
+          id: user?.id || "self",
+          avatar: user?.avatar,
+        }}
+        onSendMessage={(msg) => {
           const socket = getSocket();
-          socket.emit("chat:send", { content, radius });
+          const content = typeof msg === "string" ? msg : msg?.content;
+          if (content && socket) {
+            socket.emit("chat:send", { content, radius });
+          }
         }}
       />
 
@@ -371,7 +380,8 @@ function ProxiSpeakMain() {
       <ScreenShareModal
         isOpen={isScreenShareOpen}
         onClose={() => setIsScreenShareOpen(false)}
-        roomName={officePos?.zone}
+        presenterName={user?.displayName || user?.username || "Lead Architect"}
+        roomName={officePos?.zone || "Executive Glass Boardroom"}
         attendeesCount={livePeers.length + 1}
       />
 
